@@ -30,6 +30,11 @@ jspm_packages/
 *.tgz
 .yarn-integrity
 .cache
+cdk.out
+cdk.out/*
+assets
+cdk.context.json
+.dccache
 /test-reports/
 junit.xml
 /coverage/
@@ -37,8 +42,6 @@ junit.xml
 /dist/changelog.md
 /dist/version.txt
 !/.github/workflows/release.yml
-!/.mergify.yml
-!/.github/workflows/upgrade-main.yml
 !/.github/pull_request_template.md
 !/test/
 !/tsconfig.dev.json
@@ -49,4 +52,5 @@ junit.xml
 .jsii
 tsconfig.json
 !/API.md
+!/.tool-versions
 !/.projenrc.ts

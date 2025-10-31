@@ -6,12 +6,11 @@
     ".github/workflows/build.yml",
     ".github/workflows/pull-request-lint.yml",
     ".github/workflows/release.yml",
-    ".github/workflows/upgrade-main.yml",
     ".gitignore",
-    ".mergify.yml",
     ".projen/deps.json",
     ".projen/files.json",
     ".projen/tasks.json",
+    ".tool-versions",
     "LICENSE",
     "tsconfig.dev.json"
   ],
