@@ -5,7 +5,7 @@ const minNodeVersion = '20.9.0';
 const jsiiVersion = '~5.8.0';
 const cdkVersion = '2.85.0'; // Required
 const projenVersion = '^0.95.4'; // Does not affect consumers of the library
-const minConstructsVersion = '10.0.0'; // Minimum version to support CDK v2
+const minConstructsVersion = '10.0.5'; // Minimum version to support CDK v2
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'Jayson Rawlins',
   description: 'A GitHub Action that creates a CDK diff for a pull request.',
@@ -52,6 +52,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   depsUpgrade: false,
   peerDeps: [
     'aws-cdk-lib', // recommend using version 189 or greater due to security updates
+    'constructs',
   ],
   deps: [ // Does affect consumers of the library
     'constructs',
@@ -65,6 +66,14 @@ const project = new awscdk.AwsCdkConstructLibrary({
     '@aws-sdk/types',
     '@types/node',
     '@types/lodash',
+  ],
+  bundledDeps: [
+    '@types/js-yaml',
+    'js-yaml',
+    'lodash.merge',
+    '@types/crypto-js',
+    'crypto-js',
+    'lodash',
   ],
   gitignore: [
     'cdk.out',
@@ -82,7 +91,7 @@ project.package.addField('resolutions', {
   'form-data': '^4.0.4',
   '@eslint/plugin-kit': '^0.3.4',
   'aws-cdk-lib': '>=2.85.0 <3.0.0',
-  'constructs': '>=10.0.5 <11.0.0',
+  'constructs': '>=10.0.0 <11.0.0',
 });
 
 new TextFile(project, '.tool-versions', {
@@ -93,4 +102,8 @@ new TextFile(project, '.tool-versions', {
   ],
 });
 
+project.addDevDeps(`constructs@^${minConstructsVersion}`);
+
 project.synth();
+
+

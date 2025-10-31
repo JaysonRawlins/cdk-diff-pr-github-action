@@ -47,6 +47,11 @@
       "type": "build"
     },
     {
+      "name": "constructs",
+      "version": "^10.0.5",
+      "type": "build"
+    },
+    {
       "name": "eslint-import-resolver-typescript",
       "type": "build"
     },
@@ -107,6 +112,30 @@
     {
       "name": "typescript",
       "type": "build"
+    },
+    {
+      "name": "@types/crypto-js",
+      "type": "bundled"
+    },
+    {
+      "name": "@types/js-yaml",
+      "type": "bundled"
+    },
+    {
+      "name": "crypto-js",
+      "type": "bundled"
+    },
+    {
+      "name": "js-yaml",
+      "type": "bundled"
+    },
+    {
+      "name": "lodash",
+      "type": "bundled"
+    },
+    {
+      "name": "lodash.merge",
+      "type": "bundled"
     },
     {
       "name": "aws-cdk-lib",

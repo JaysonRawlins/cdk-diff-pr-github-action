@@ -43,6 +43,7 @@
     "aws-cdk": "2.1029.2",
     "aws-cdk-lib": "2.85.0",
     "commit-and-tag-version": "^12",
+    "constructs": "10.0.5",
     "eslint": "^9",
     "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-import": "^2.32.0",
@@ -63,15 +64,27 @@
     "constructs": "^10.0.5"
   },
   "dependencies": {
-    "constructs": "^10.4.2",
+    "@types/crypto-js": "^4.2.2",
+    "@types/js-yaml": "^4.0.9",
+    "constructs": "^10.0.5",
     "crypto-js": "^4.2.0",
-    "lodash": "^4.17.21"
+    "js-yaml": "^4.1.0",
+    "lodash": "^4.17.21",
+    "lodash.merge": "^4.6.2"
   },
+  "bundledDependencies": [
+    "@types/crypto-js",
+    "@types/js-yaml",
+    "crypto-js",
+    "js-yaml",
+    "lodash",
+    "lodash.merge"
+  ],
   "resolutions": {
     "form-data": "^4.0.4",
     "@eslint/plugin-kit": "^0.3.4",
     "aws-cdk-lib": ">=2.85.0 <3.0.0",
-    "constructs": ">=10.0.5 <11.0.0"
+    "constructs": ">=10.0.0 <11.0.0"
   },
   "keywords": [
     "action",
