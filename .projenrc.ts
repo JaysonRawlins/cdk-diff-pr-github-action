@@ -1,11 +1,12 @@
-import { awscdk, TextFile } from 'projen';
+import { awscdk, TextFile, DependencyType } from 'projen';
 import { GithubCredentials } from 'projen/lib/github';
 const cdkCliVersion = '2.1029.2';
 const minNodeVersion = '20.9.0';
 const jsiiVersion = '~5.8.0';
-const cdkVersion = '2.85.0'; // Required
-const projenVersion = '^0.95.4'; // Does not affect consumers of the library
-const minConstructsVersion = '10.0.5'; // Minimum version to support CDK v2
+const cdkVersion = '2.85.0'; // Minimum CDK Version Required
+const minProjenVersion = '0.95.6'; // Does not affect consumers of the library
+const minConstructsVersion = '10.0.5'; // Minimum version to support CDK v2 and does affect consumers of the library
+const devConstructsVersion = '10.0.5'; // Pin for local dev/build to avoid jsii type conflicts
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'Jayson Rawlins',
   description: 'A GitHub Action that creates a CDK diff for a pull request.',
@@ -15,7 +16,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   minNodeVersion: minNodeVersion,
   cdkVersion: cdkVersion,
   cdkCliVersion: cdkCliVersion,
-  projenVersion: projenVersion,
+  projenVersion: `^${minProjenVersion}`,
   defaultReleaseBranch: 'main',
   license: 'Apache-2.0',
   jsiiVersion: jsiiVersion,
@@ -51,18 +52,17 @@ const project = new awscdk.AwsCdkConstructLibrary({
   },
   depsUpgrade: false,
   peerDeps: [
-    'aws-cdk-lib', // recommend using version 189 or greater due to security updates
-    'constructs',
+    `aws-cdk-lib@>=${cdkVersion} <3.0.0`,
+    `constructs@>=${minConstructsVersion} <11.0.0`,
   ],
   deps: [ // Does affect consumers of the library
-    'constructs',
     'crypto-js',
     'lodash',
+    'projen',
   ],
   devDeps: [ // Does not affect consumers of the library
     `aws-cdk@${cdkCliVersion}`,
     `aws-cdk-lib@${cdkVersion}`,
-    `constructs@^${minConstructsVersion}`,
     '@aws-sdk/types',
     '@types/node',
     '@types/lodash',
@@ -90,8 +90,10 @@ const project = new awscdk.AwsCdkConstructLibrary({
 project.package.addField('resolutions', {
   'form-data': '^4.0.4',
   '@eslint/plugin-kit': '^0.3.4',
-  'aws-cdk-lib': '>=2.85.0 <3.0.0',
-  'constructs': '>=10.0.0 <11.0.0',
+  'aws-cdk-lib': `>=${cdkVersion} <3.0.0`,
+  // Pin constructs for local dev/build to a single version to avoid jsii conflicts
+  'constructs': devConstructsVersion,
+  'projen': `>=${minProjenVersion} <1.0.0`,
 });
 
 new TextFile(project, '.tool-versions', {
@@ -102,7 +104,9 @@ new TextFile(project, '.tool-versions', {
   ],
 });
 
-project.addDevDeps(`constructs@^${minConstructsVersion}`);
+// Ensure 'constructs' is only a peer dependency (avoid duplicates that cause jsii conflicts)
+project.deps.removeDependency('constructs');
+project.deps.addDependency(`constructs@>=${minConstructsVersion} <11.0.0`, DependencyType.PEER);
 
 project.synth();
 

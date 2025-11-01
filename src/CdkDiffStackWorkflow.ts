@@ -1,0 +1,142 @@
+import { AwsCdkTypeScriptApp } from 'projen/lib/awscdk';
+import { GithubWorkflow } from 'projen/lib/github';
+import { JobPermission } from 'projen/lib/github/workflows-model';
+
+const githubActionsAwsCredentialsVersion = 'v4';
+const githubActionsCheckoutVersion = 'v4';
+const githubActionsSetupNodeVersion = 'v4';
+const nodeVersion = '24.x';
+
+interface CdkDiffStackWorkflowProps {
+  project: AwsCdkTypeScriptApp;
+  stackName: string;
+  stackRegion: string;
+  stackAccount: string;
+  cdkYarnCommand?: string;
+}
+export class CdkDiffStackWorkflow {
+
+
+  constructor(props: CdkDiffStackWorkflowProps) {
+    const diffDeployWorkflow = new GithubWorkflow(props.project.github!, `diff-${props.stackName}`);
+    const cdkYarnCommand = props.cdkYarnCommand ?? 'cdk'; // Default to cdk
+
+    // Configure workflow triggers
+    diffDeployWorkflow.on({
+      pullRequest: {
+        types: ['opened', 'synchronize', 'reopened'],
+      },
+    });
+
+    // Add the diff job
+    diffDeployWorkflow.addJobs({
+      diff: {
+        runsOn: ['ubuntu-latest'],
+        permissions: {
+          idToken: JobPermission.WRITE,
+          contents: JobPermission.READ,
+          issues: JobPermission.WRITE,
+          pullRequests: JobPermission.WRITE,
+          packages: JobPermission.READ,
+        },
+        env: {
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
+        },
+        steps: [
+          // Checkout code
+          {
+            uses: `actions/checkout@${githubActionsCheckoutVersion}`,
+          },
+          // Setup Node.js
+          {
+            uses: `actions/setup-node@${githubActionsSetupNodeVersion}`,
+            with: {
+              'node-version': nodeVersion,
+              'registry-url': 'https://npm.pkg.github.com',
+              'scope': '@${{ github.repository_owner }}',
+              'token': '${{ secrets.GITHUB_TOKEN }}',
+            },
+          },
+          // Install dependencies
+          {
+            run: 'yarn install --frozen-lockfile',
+            env: {
+              NODE_AUTH_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
+            },
+          },
+          {
+            id: 'creds',
+            uses: `aws-actions/configure-aws-credentials@${githubActionsAwsCredentialsVersion}`,
+            with: {
+              'role-to-assume': '${{ secrets.AWS_GITHUB_OIDC_ROLE }}',
+              'aws-region': '${{ secrets.AWS_GITHUB_OIDC_REGION }}',
+            },
+          },
+          {
+            name: 'Assume CDK Deploy Role',
+            id: 'deploy-role',
+            uses: 'aws-actions/configure-aws-credentials@v4',
+            with: {
+              'role-to-assume': `arn:aws:iam::${props.stackAccount}:role/cdk-hnb659fds-deploy-role-${props.stackAccount}-${props.stackRegion}`,
+              'role-chaining': true,
+              'role-skip-session-tagging': true,
+              'aws-region': `${props.stackRegion}`,
+              'aws-access-key-id': '${{ steps.creds.outputs.aws-access-key-id }}',
+              'aws-secret-access-key': '${{ steps.creds.outputs.aws-secret-access-key }}',
+              'aws-session-token': '${{ steps.creds.outputs.aws-session-token }}',
+            },
+          },
+          {
+            name: 'Detect Drift (TypeScript)',
+            run: 'npx ts-node projenrc/detect-drift.ts',
+            env: {
+              STACK_NAME: `${props.stackName}`,
+              GITHUB_COMMENT_URL: '${{ github.event.pull_request.comments_url }}',
+              GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
+            },
+          },
+          {
+            id: 'creds2',
+            uses: `aws-actions/configure-aws-credentials@${githubActionsAwsCredentialsVersion}`,
+            with: {
+              'role-to-assume': '${{ secrets.AWS_GITHUB_OIDC_ROLE }}',
+              'aws-region': '${{ secrets.AWS_GITHUB_OIDC_REGION }}',
+            },
+          },
+          {
+            name: `Create Changeset for ${props.stackName}`,
+            run: `yarn ${cdkYarnCommand} deploy ${props.stackName} --no-execute --change-set-name ${props.stackName} --require-approval never`,
+          },
+          {
+            name: 'Assume CDK Deploy Role',
+            id: 'deploy-role2',
+            uses: 'aws-actions/configure-aws-credentials@v4',
+            with: {
+              'role-to-assume': `arn:aws:iam::${props.stackAccount}:role/cdk-hnb659fds-deploy-role-${props.stackAccount}-${props.stackRegion}`,
+              'role-chaining': true,
+              'role-skip-session-tagging': true,
+              'aws-region': `${props.stackRegion}`,
+              'aws-access-key-id': '${{ steps.creds.outputs.aws-access-key-id }}',
+              'aws-secret-access-key': '${{ steps.creds.outputs.aws-secret-access-key }}',
+              'aws-session-token': '${{ steps.creds.outputs.aws-session-token }}',
+            },
+          },
+          {
+            name: 'Describe change set',
+            run: 'npx ts-node projenrc/describe-cfn-changeset.ts',
+            env: {
+              STACK_NAME: `${props.stackName}`,
+              CHANGE_SET_NAME: `${props.stackName}`,
+              GITHUB_COMMENT_URL: '${{ github.event.pull_request.comments_url }}',
+              GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
+            },
+          },
+          {
+            name: 'Delete changeset',
+            run: `aws cloudformation delete-change-set --change-set-name ${props.stackName} --stack-name ${props.stackName} --region ${props.stackRegion}`,
+          },
+        ],
+      },
+    });
+  }
+}
