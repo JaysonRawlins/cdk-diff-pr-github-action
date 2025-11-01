@@ -143,6 +143,10 @@
       "type": "peer"
     },
     {
+      "name": "@aws-sdk/client-cloudformation",
+      "type": "runtime"
+    },
+    {
       "name": "crypto-js",
       "type": "runtime"
     },

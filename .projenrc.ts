@@ -59,6 +59,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'crypto-js',
     'lodash',
     'projen',
+    '@aws-sdk/client-cloudformation',
   ],
   devDeps: [ // Does not affect consumers of the library
     `aws-cdk@${cdkCliVersion}`,
