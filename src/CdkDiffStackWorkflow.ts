@@ -17,12 +17,12 @@ const DESCRIBE_CF_CHANGESET_SCRIPT = `/*
 require('@jjrawlins/cdk-diff-pr-github-action/lib/bin/describe-cfn-changeset.js');
 `;
 
-interface CdkDiffStackWorkflowProps {
-  project: AwsCdkTypeScriptApp;
-  stackName: string;
-  stackRegion: string;
-  stackAccount: string;
-  cdkYarnCommand?: string;
+export interface CdkDiffStackWorkflowProps {
+  readonly project: AwsCdkTypeScriptApp;
+  readonly stackName: string;
+  readonly stackRegion: string;
+  readonly stackAccount: string;
+  readonly cdkYarnCommand?: string;
 }
 export class CdkDiffStackWorkflow {
 
