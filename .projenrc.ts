@@ -69,6 +69,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     '@types/lodash',
   ],
   bundledDeps: [
+    '@aws-sdk/client-cloudformation',
     '@types/js-yaml',
     'js-yaml',
     'lodash.merge',

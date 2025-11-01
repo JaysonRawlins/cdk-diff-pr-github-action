@@ -74,6 +74,7 @@
     "projen": "^0.95.6"
   },
   "bundledDependencies": [
+    "@aws-sdk/client-cloudformation",
     "@types/crypto-js",
     "@types/js-yaml",
     "crypto-js",

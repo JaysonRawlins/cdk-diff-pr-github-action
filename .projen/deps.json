@@ -109,6 +109,10 @@
       "type": "build"
     },
     {
+      "name": "@aws-sdk/client-cloudformation",
+      "type": "bundled"
+    },
+    {
       "name": "@types/crypto-js",
       "type": "bundled"
     },
