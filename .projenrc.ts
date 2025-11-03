@@ -84,6 +84,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'cdk.context.json',
     'tsconfig.json',
     '.dccache',
+    '.yalc',
   ],
   releaseToNpm: false,
 });

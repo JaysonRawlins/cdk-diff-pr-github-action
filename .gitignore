@@ -35,6 +35,7 @@ cdk.out/*
 assets
 cdk.context.json
 .dccache
+.yalc
 /test-reports/
 junit.xml
 /coverage/
