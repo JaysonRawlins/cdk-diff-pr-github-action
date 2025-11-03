@@ -65,6 +65,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.922.0",
+    "@jjrawlins/cdk-diff-pr-github-action": "file:.yalc/@jjrawlins/cdk-diff-pr-github-action",
     "@types/crypto-js": "^4.2.2",
     "@types/js-yaml": "^4.0.9",
     "crypto-js": "^4.2.0",
