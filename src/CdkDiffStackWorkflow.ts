@@ -8,8 +8,8 @@ const githubActionsSetupNodeVersion = 'v4';
 
 export interface CdkDiffStack {
   readonly stackName: string;
-  readonly cdkDiffRoleToAssumeArn: string;
-  readonly cdkDiffRoleToAssumeRegion: string;
+  readonly changesetRoleToAssumeArn: string;
+  readonly changesetRoleToAssumeRegion: string;
   readonly oidcRoleArn?: string; // Optional override for OIDC role
   readonly oidcRegion?: string; // Optional override for OIDC region
 }
@@ -80,14 +80,11 @@ export class CdkDiffStackWorkflow {
     defaultOidcRoleArn: string,
     defaultOidcRegion: string,
   ) {
-    // Configure workflow triggers
     workflow.on({
       pullRequest: {
         types: ['opened', 'synchronize', 'reopened'],
       },
     });
-
-    // Add the diff job
     workflow.addJobs({
       diff: {
         runsOn: ['ubuntu-latest'],
@@ -102,11 +99,9 @@ export class CdkDiffStackWorkflow {
           GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
         },
         steps: [
-          // Checkout code
           {
             uses: `actions/checkout@${githubActionsCheckoutVersion}`,
           },
-          // Setup Node.js
           {
             uses: `actions/setup-node@${githubActionsSetupNodeVersion}`,
             with: {
@@ -116,12 +111,22 @@ export class CdkDiffStackWorkflow {
               'token': '${{ secrets.GITHUB_TOKEN }}',
             },
           },
-          // Install dependencies
           {
             run: 'yarn install --frozen-lockfile',
             env: {
               NODE_AUTH_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
             },
+          },
+          {
+            uses: `aws-actions/configure-aws-credentials@${githubActionsAwsCredentialsVersion}`,
+            with: {
+              'role-to-assume': stack.oidcRoleArn ?? defaultOidcRoleArn,
+              'aws-region': stack.oidcRegion ?? defaultOidcRegion,
+            },
+          },
+          {
+            name: `Create Changeset for ${stack.stackName}`,
+            run: `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${stack.stackName} --require-approval never`,
           },
           {
             id: 'creds',
@@ -132,25 +137,19 @@ export class CdkDiffStackWorkflow {
             },
           },
           {
-            name: 'Assume CDK Deploy Role',
-            id: 'deploy-role',
-            uses: 'aws-actions/configure-aws-credentials@v4',
+            name: 'Assume CloudFormation Changeset Role',
+            id: 'changeset-role',
+            uses: `aws-actions/configure-aws-credentials@${githubActionsAwsCredentialsVersion}`,
             with: {
-              'role-to-assume': stack.cdkDiffRoleToAssumeArn,
+              'role-to-assume': stack.changesetRoleToAssumeArn,
               'role-chaining': true,
               'role-skip-session-tagging': true,
-              'aws-region': stack.cdkDiffRoleToAssumeRegion,
+              'aws-region': stack.changesetRoleToAssumeRegion,
               'aws-access-key-id': '${{ steps.creds.outputs.aws-access-key-id }}',
               'aws-secret-access-key': '${{ steps.creds.outputs.aws-secret-access-key }}',
               'aws-session-token': '${{ steps.creds.outputs.aws-session-token }}',
             },
           },
-          // Add changeset creation step
-          {
-            name: `Create Changeset for ${stack.stackName}`,
-            run: `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${stack.stackName} --require-approval never`,
-          },
-          // Add changeset description step
           {
             name: `Describe change set for ${stack.stackName}`,
             run: `npx ts-node ${scriptOutputPath}`,
@@ -161,10 +160,9 @@ export class CdkDiffStackWorkflow {
               GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
             },
           },
-          // Add changeset cleanup step
           {
             name: `Delete changeset for ${stack.stackName}`,
-            run: `aws cloudformation delete-change-set --change-set-name ${stack.stackName} --stack-name ${stack.stackName} --region ${stack.cdkDiffRoleToAssumeRegion}`,
+            run: `aws cloudformation delete-change-set --change-set-name ${stack.stackName} --stack-name ${stack.stackName} --region ${stack.changesetRoleToAssumeRegion}`,
           },
         ],
       },

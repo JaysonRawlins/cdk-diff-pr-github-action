@@ -17,9 +17,31 @@ const cdkDiffIamTemplateProps: CdkDiffIamTemplateProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.project">project</a></code> | <code>any</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.stackName">stackName</a></code> | <code>string</code> | *No description.* |
+
+---
+
+##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
 
 ---
 
@@ -33,20 +55,20 @@ public readonly project: any;
 
 ---
 
-##### `outputPath`<sup>Optional</sup> <a name="outputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath"></a>
+##### `roleName`<sup>Required</sup> <a name="roleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.roleName"></a>
 
 ```typescript
-public readonly outputPath: string;
+public readonly roleName: string;
 ```
 
 - *Type:* string
 
 ---
 
-##### `stackName`<sup>Optional</sup> <a name="stackName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.stackName"></a>
+##### `outputPath`<sup>Optional</sup> <a name="outputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath"></a>
 
 ```typescript
-public readonly stackName: string;
+public readonly outputPath: string;
 ```
 
 - *Type:* string
@@ -219,6 +241,78 @@ public readonly scriptOutputPath: string;
 
 ---
 
+### CdkDriftIamTemplateProps <a name="CdkDriftIamTemplateProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps"></a>
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.Initializer"></a>
+
+```typescript
+import { CdkDriftIamTemplateProps } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const cdkDriftIamTemplateProps: CdkDriftIamTemplateProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.project">project</a></code> | <code>any</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | *No description.* |
+
+---
+
+##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+---
+
+##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.project"></a>
+
+```typescript
+public readonly project: any;
+```
+
+- *Type:* any
+
+---
+
+##### `roleName`<sup>Required</sup> <a name="roleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.roleName"></a>
+
+```typescript
+public readonly roleName: string;
+```
+
+- *Type:* string
+
+---
+
+##### `outputPath`<sup>Optional</sup> <a name="outputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.outputPath"></a>
+
+```typescript
+public readonly outputPath: string;
+```
+
+- *Type:* string
+
+---
+
 ## Classes <a name="Classes" id="Classes"></a>
 
 ### CdkDiffIamTemplate <a name="CdkDiffIamTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplate"></a>
@@ -266,6 +360,32 @@ new CdkDiffStackWorkflow(props: CdkDiffStackWorkflowProps)
 ##### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflow.Initializer.parameter.props"></a>
 
 - *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps">CdkDiffStackWorkflowProps</a>
+
+---
+
+
+
+
+
+### CdkDriftIamTemplate <a name="CdkDriftIamTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplate"></a>
+
+#### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplate.Initializer"></a>
+
+```typescript
+import { CdkDriftIamTemplate } from '@jjrawlins/cdk-diff-pr-github-action'
+
+new CdkDriftIamTemplate(props: CdkDriftIamTemplateProps)
+```
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplate.Initializer.parameter.props">props</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps">CdkDriftIamTemplateProps</a></code> | *No description.* |
+
+---
+
+##### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplate.Initializer.parameter.props"></a>
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps">CdkDriftIamTemplateProps</a>
 
 ---
 

@@ -12,7 +12,7 @@ describe('CdkDiffIamTemplate', () => {
       github: false,
     } as any);
 
-    new CdkDiffIamTemplate({ project: app });
+    new CdkDiffIamTemplate({ project: app, roleName: 'test-cdk-changeset-role', oidcRoleArn: 'arn:aws:iam::123456789012:role/github-oidc-role', oidcRegion: 'us-east-1' });
 
     const out = synthSnapshot(app);
 

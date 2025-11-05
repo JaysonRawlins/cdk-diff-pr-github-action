@@ -2,13 +2,20 @@ import { TextFile } from 'projen';
 
 export interface CdkDiffIamTemplateProps {
   readonly project: any;
+  readonly roleName: string;
   readonly outputPath?: string;
-  readonly stackName?: string;
+  readonly oidcRoleArn: string;
+  readonly oidcRegion: string;
 }
 
 export class CdkDiffIamTemplate {
   constructor(props: CdkDiffIamTemplateProps) {
     const outputPath = props.outputPath ?? 'cdk-diff-workflow-iam-template.yaml';
+    props.project.addTask('deploy-cdkdiff-iam-template', {
+      description: 'Deploy the CDK Diff IAM template via CloudFormation (accepts extra AWS CLI args, e.g., --parameter-overrides Key=Value...)',
+      receiveArgs: true,
+      exec: `aws cloudformation deploy --template-file ${outputPath} --stack-name cdk-diff-workflow-iam-role --capabilities CAPABILITY_NAMED_IAM`,
+    });
 
     new TextFile(props.project, outputPath, {
       lines: [
@@ -19,14 +26,14 @@ export class CdkDiffIamTemplate {
         '  GitHubOIDCRoleArn:',
         '    Type: String',
         "    Description: 'ARN of the existing GitHub OIDC role that can assume this changeset role'",
-        "    Default: 'arn:aws:iam::123456789012:role/github-oidc-role'",
+        `    Default: '${props.oidcRoleArn}'`,
         '',
         'Resources:',
         '  # CloudFormation ChangeSet Role - minimal permissions for changeset operations',
         '  CdkChangesetRole:',
         '    Type: AWS::IAM::Role',
         '    Properties:',
-        "      RoleName: !Sub '${AWS::StackName}-cdk-changeset-role'",
+        "      RoleName: '" + props.roleName + "'",
         '      AssumeRolePolicyDocument:',
         "        Version: '2012-10-17'",
         '        Statement:',
@@ -36,7 +43,7 @@ export class CdkDiffIamTemplate {
         '            Action: sts:AssumeRole',
         '            Condition:',
         '              StringEquals:',
-        "                'aws:RequestedRegion': 'us-east-2'  # Adjust region as needed",
+        "                aws:RequestedRegion: '" + props.oidcRegion + "'",
         '      Policies:',
         '        - PolicyName: CloudFormationChangeSetAccess',
         '          PolicyDocument:',

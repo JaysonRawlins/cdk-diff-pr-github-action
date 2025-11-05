@@ -44,8 +44,8 @@ new CdkDiffStackWorkflow({
   stacks: [
     {
       stackName: 'MyAppStack',
-      cdkDiffRoleToAssumeArn: 'arn:aws:iam::123456789012:role/cdk-diff-role',
-      cdkDiffRoleToAssumeRegion: 'us-east-1',
+      changesetRoleToAssumeArn: 'arn:aws:iam::123456789012:role/cdk-diff-role',
+      changesetRoleToAssumeRegion: 'us-east-1',
       // Optional per‑stack OIDC override (if not using the defaults below)
       // oidcRoleArn: 'arn:aws:iam::123456789012:role/github-oidc-role',
       // oidcRegion: 'us-east-1',
@@ -76,8 +76,8 @@ If neither the defaults nor all per‑stack values are supplied, the construct t
 
 ### Stack item fields
 - `stackName` — The CDK stack name to create the change set for.
-- `cdkDiffRoleToAssumeArn` — The ARN of the role used to create the change set (role chaining after OIDC).
-- `cdkDiffRoleToAssumeRegion` — The region for that role.
+- `changesetRoleToAssumeArn` — The ARN of the role used to create the change set (role chaining after OIDC).
+- `changesetRoleToAssumeRegion` — The region for that role.
 - `oidcRoleArn` (optional) — Per‑stack override for the OIDC role.
 - `oidcRegion` (optional) — Per‑stack override for the OIDC region.
 
@@ -124,7 +124,7 @@ This will write `cdk-diff-workflow-iam-template.yaml` at the project root. The t
   - `iam:PassRole` to `cloudformation.amazonaws.com`
 - Outputs exporting the role name and ARN.
 
-You can deploy the file via CloudFormation/StackSets and then use the created role ARN as the `cdkDiffRoleToAssumeArn` in your workflow configuration.
+You can deploy the file via CloudFormation/StackSets and then use the created role ARN as the `changesetRoleToAssumeArn` in your workflow configuration.
 
 ## Testing
 

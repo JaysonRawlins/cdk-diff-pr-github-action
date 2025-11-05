@@ -21,13 +21,13 @@ describe('CdkDiffStackWorkflow', () => {
       stacks: [
         {
           stackName: 'MyStackA',
-          cdkDiffRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
-          cdkDiffRoleToAssumeRegion: 'us-east-1',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
         },
         {
           stackName: 'MyStackB',
-          cdkDiffRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
-          cdkDiffRoleToAssumeRegion: 'us-east-2',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-2',
         },
       ],
       oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
@@ -69,8 +69,8 @@ describe('CdkDiffStackWorkflow', () => {
       stacks: [
         {
           stackName: 'StackWithOverride',
-          cdkDiffRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
-          cdkDiffRoleToAssumeRegion: 'us-west-2',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-west-2',
           oidcRoleArn: 'arn:aws:iam::444455556666:role/override-oidc',
           oidcRegion: 'eu-west-1',
         },
