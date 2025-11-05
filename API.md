@@ -89,28 +89,28 @@ const cdkDiffStack: CdkDiffStack = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.cdkDiffRoleToAssumeArn">cdkDiffRoleToAssumeArn</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.cdkDiffRoleToAssumeRegion">cdkDiffRoleToAssumeRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.changesetRoleToAssumeArn">changesetRoleToAssumeArn</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.changesetRoleToAssumeRegion">changesetRoleToAssumeRegion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.stackName">stackName</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 
 ---
 
-##### `cdkDiffRoleToAssumeArn`<sup>Required</sup> <a name="cdkDiffRoleToAssumeArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.cdkDiffRoleToAssumeArn"></a>
+##### `changesetRoleToAssumeArn`<sup>Required</sup> <a name="changesetRoleToAssumeArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.changesetRoleToAssumeArn"></a>
 
 ```typescript
-public readonly cdkDiffRoleToAssumeArn: string;
+public readonly changesetRoleToAssumeArn: string;
 ```
 
 - *Type:* string
 
 ---
 
-##### `cdkDiffRoleToAssumeRegion`<sup>Required</sup> <a name="cdkDiffRoleToAssumeRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.cdkDiffRoleToAssumeRegion"></a>
+##### `changesetRoleToAssumeRegion`<sup>Required</sup> <a name="changesetRoleToAssumeRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.property.changesetRoleToAssumeRegion"></a>
 
 ```typescript
-public readonly cdkDiffRoleToAssumeRegion: string;
+public readonly changesetRoleToAssumeRegion: string;
 ```
 
 - *Type:* string
