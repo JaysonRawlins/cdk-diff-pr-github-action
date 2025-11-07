@@ -107,10 +107,33 @@ async function main() {
   }
 
   // When there is drift, collect details and post a PR comment + step summary
+  const outputFile = process.env.DRIFT_DETECTION_OUTPUT;
   if (stackDriftStatus !== 'IN_SYNC') {
     console.error(`Drift detected (status: ${stackDriftStatus})`);
     const drifts = await listDriftedResources();
     const html = buildHtml(stackName, drifts);
+
+    // Write machine-readable JSON if requested
+    if (outputFile) {
+      try {
+        const { writeFile } = await import('fs/promises');
+        const result = [
+          {
+            stackName,
+            driftStatus: stackDriftStatus,
+            driftedResources: (drifts || []).map(d => ({
+              logicalResourceId: d.LogicalResourceId,
+              resourceType: d.ResourceType,
+              stackResourceDriftStatus: d.StackResourceDriftStatus,
+              propertyDifferences: d.PropertyDifferences,
+            })),
+          },
+        ];
+        await writeFile(outputFile, JSON.stringify(result, null, 2), { encoding: 'utf8' });
+      } catch (e: any) {
+        console.error('Failed to write drift JSON results:', e?.message || e);
+      }
+    }
 
     // Print to stdout and append to summary if available
     console.log(html);
@@ -131,6 +154,23 @@ async function main() {
     }
 
     process.exit(1);
+  }
+
+  // No drift case
+  if (outputFile) {
+    try {
+      const { writeFile } = await import('fs/promises');
+      const result = [
+        {
+          stackName,
+          driftStatus: 'IN_SYNC',
+          driftedResources: [],
+        },
+      ];
+      await writeFile(outputFile, JSON.stringify(result, null, 2), { encoding: 'utf8' });
+    } catch (e: any) {
+      console.error('Failed to write drift JSON results:', e?.message || e);
+    }
   }
   console.log('No drift detected (IN_SYNC)');
 }

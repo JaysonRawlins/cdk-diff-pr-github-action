@@ -60,6 +60,7 @@ export class CdkDriftIamTemplate {
         '                  - cloudformation:DescribeStackResourceDrifts',
         '                  - cloudformation:DescribeStacks',
         '                  - cloudformation:ListStackResources',
+        '                  - cloudformation:DetectStackResourceDrift',
         "                Resource: '*'",
         '',
         'Outputs:',

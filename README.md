@@ -32,7 +32,7 @@ import { CdkDiffStackWorkflow } from '@jjrawlins/cdk-diff-pr-github-action';
 
 const project = new awscdk.AwsCdkConstructLibrary({
   // ... your usual settings ...
-  name: 'my-lib',
+  workflowName: 'my-lib',
   defaultReleaseBranch: 'main',
   cdkVersion: '2.85.0',
   github: true,
@@ -75,7 +75,7 @@ project.synth();
 If neither the defaults nor all per‑stack values are supplied, the construct throws with a helpful error.
 
 ### Stack item fields
-- `stackName` — The CDK stack name to create the change set for.
+- `stackName` — The CDK stack workflowName to create the change set for.
 - `changesetRoleToAssumeArn` — The ARN of the role used to create the change set (role chaining after OIDC).
 - `changesetRoleToAssumeRegion` — The region for that role.
 - `oidcRoleArn` (optional) — Per‑stack override for the OIDC role.
@@ -90,7 +90,7 @@ If neither the defaults nor all per‑stack values are supplied, the construct t
   - Prints the HTML, appends to the GitHub Step Summary, and (if `GITHUB_TOKEN` and `GITHUB_COMMENT_URL` are present) posts a PR comment
 
 ### Environment variables used by the script
-- `STACK_NAME` (required) — Stack name to describe.
+- `STACK_NAME` (required) — Stack workflowName to describe.
 - `CHANGE_SET_NAME` (default: same as `STACK_NAME`).
 - `AWS_REGION` — Region for CloudFormation API calls. The workflow sets this via the credentials action.
 - `GITHUB_TOKEN` (optional) — If set with `GITHUB_COMMENT_URL`, posts a PR comment.
@@ -122,7 +122,7 @@ This will write `cdk-diff-workflow-iam-template.yaml` at the project root. The t
   - CloudFormation Change Set operations
   - Access to common CDK bootstrap S3 buckets and SSM parameters
   - `iam:PassRole` to `cloudformation.amazonaws.com`
-- Outputs exporting the role name and ARN.
+- Outputs exporting the role workflowName and ARN.
 
 You can deploy the file via CloudFormation/StackSets and then use the created role ARN as the `changesetRoleToAssumeArn` in your workflow configuration.
 

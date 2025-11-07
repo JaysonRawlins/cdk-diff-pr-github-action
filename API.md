@@ -241,6 +241,122 @@ public readonly scriptOutputPath: string;
 
 ---
 
+### CdkDriftDetectionWorkflowProps <a name="CdkDriftDetectionWorkflowProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps"></a>
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.Initializer"></a>
+
+```typescript
+import { CdkDriftDetectionWorkflowProps } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const cdkDriftDetectionWorkflowProps: CdkDriftDetectionWorkflowProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.project">project</a></code> | <code>any</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.stacks">stacks</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack">Stack</a>[]</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.createIssues">createIssues</a></code> | <code>boolean</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.nodeVersion">nodeVersion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.schedule">schedule</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workflowName">workflowName</a></code> | <code>string</code> | *No description.* |
+
+---
+
+##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+---
+
+##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.project"></a>
+
+```typescript
+public readonly project: any;
+```
+
+- *Type:* any
+
+---
+
+##### `stacks`<sup>Required</sup> <a name="stacks" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.stacks"></a>
+
+```typescript
+public readonly stacks: Stack[];
+```
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.Stack">Stack</a>[]
+
+---
+
+##### `createIssues`<sup>Optional</sup> <a name="createIssues" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.createIssues"></a>
+
+```typescript
+public readonly createIssues: boolean;
+```
+
+- *Type:* boolean
+
+---
+
+##### `nodeVersion`<sup>Optional</sup> <a name="nodeVersion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.nodeVersion"></a>
+
+```typescript
+public readonly nodeVersion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `schedule`<sup>Optional</sup> <a name="schedule" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.schedule"></a>
+
+```typescript
+public readonly schedule: string;
+```
+
+- *Type:* string
+
+---
+
+##### `scriptOutputPath`<sup>Optional</sup> <a name="scriptOutputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.scriptOutputPath"></a>
+
+```typescript
+public readonly scriptOutputPath: string;
+```
+
+- *Type:* string
+
+---
+
+##### `workflowName`<sup>Optional</sup> <a name="workflowName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workflowName"></a>
+
+```typescript
+public readonly workflowName: string;
+```
+
+- *Type:* string
+
+---
+
 ### CdkDriftIamTemplateProps <a name="CdkDriftIamTemplateProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps"></a>
 
 #### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.Initializer"></a>
@@ -313,6 +429,67 @@ public readonly outputPath: string;
 
 ---
 
+### Stack <a name="Stack" id="@jjrawlins/cdk-diff-pr-github-action.Stack"></a>
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.Stack.Initializer"></a>
+
+```typescript
+import { Stack } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const stack: Stack = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.driftDetectionRoleToAssumeArn">driftDetectionRoleToAssumeArn</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.driftDetectionRoleToAssumeRegion">driftDetectionRoleToAssumeRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.stackName">stackName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.failOnDrift">failOnDrift</a></code> | <code>boolean</code> | *No description.* |
+
+---
+
+##### `driftDetectionRoleToAssumeArn`<sup>Required</sup> <a name="driftDetectionRoleToAssumeArn" id="@jjrawlins/cdk-diff-pr-github-action.Stack.property.driftDetectionRoleToAssumeArn"></a>
+
+```typescript
+public readonly driftDetectionRoleToAssumeArn: string;
+```
+
+- *Type:* string
+
+---
+
+##### `driftDetectionRoleToAssumeRegion`<sup>Required</sup> <a name="driftDetectionRoleToAssumeRegion" id="@jjrawlins/cdk-diff-pr-github-action.Stack.property.driftDetectionRoleToAssumeRegion"></a>
+
+```typescript
+public readonly driftDetectionRoleToAssumeRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `stackName`<sup>Required</sup> <a name="stackName" id="@jjrawlins/cdk-diff-pr-github-action.Stack.property.stackName"></a>
+
+```typescript
+public readonly stackName: string;
+```
+
+- *Type:* string
+
+---
+
+##### `failOnDrift`<sup>Optional</sup> <a name="failOnDrift" id="@jjrawlins/cdk-diff-pr-github-action.Stack.property.failOnDrift"></a>
+
+```typescript
+public readonly failOnDrift: boolean;
+```
+
+- *Type:* boolean
+
+---
+
 ## Classes <a name="Classes" id="Classes"></a>
 
 ### CdkDiffIamTemplate <a name="CdkDiffIamTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplate"></a>
@@ -360,6 +537,32 @@ new CdkDiffStackWorkflow(props: CdkDiffStackWorkflowProps)
 ##### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflow.Initializer.parameter.props"></a>
 
 - *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps">CdkDiffStackWorkflowProps</a>
+
+---
+
+
+
+
+
+### CdkDriftDetectionWorkflow <a name="CdkDriftDetectionWorkflow" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflow"></a>
+
+#### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflow.Initializer"></a>
+
+```typescript
+import { CdkDriftDetectionWorkflow } from '@jjrawlins/cdk-diff-pr-github-action'
+
+new CdkDriftDetectionWorkflow(props: CdkDriftDetectionWorkflowProps)
+```
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflow.Initializer.parameter.props">props</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps">CdkDriftDetectionWorkflowProps</a></code> | *No description.* |
+
+---
+
+##### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflow.Initializer.parameter.props"></a>
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps">CdkDriftDetectionWorkflowProps</a>
 
 ---
 
