@@ -207,14 +207,18 @@ project.synth();
 - Each stack job uploads `drift-results-<stack>.json` (if produced).
 - A final `Drift Detection Summary` job downloads all artifacts and prints a consolidated summary.
 
+### Manual dispatch
+- The workflow exposes an input named `stack` with choices including each configured stack and an `all` option.
+- Choose a specific stack to run drift detection for that stack only, or select `all` (or leave the input empty) to run all stacks.
+
 Note: The default workflow does not post PR comments for drift. It can create/update an Issue on scheduled runs when `createIssues` is `true`.
 
 ### Post-notification steps (e.g., Slack)
 
 You can add your own GitHub Action steps to run after the drift detection step for each stack using `postGitHubSteps`.
-These steps receive a prepared Slack-compatible JSON payload via `${{ steps.notify.outputs.result }}` from an earlier step.
+Provide your own Slack payload/markdown (this library no longer generates a payload step for you).
 
-Example: Send Slack notification (only when drift occurs) using slackapi/slack-github-action@v1
+Option A: slackapi/slack-github-action (Incoming Webhook, official syntax)
 
 ```ts
 new CdkDriftDetectionWorkflow({
@@ -227,15 +231,27 @@ new CdkDriftDetectionWorkflow({
     const name = `Notify Slack (${stack} post-drift)`;
     const step = {
       name,
-      uses: 'slackapi/slack-github-action@v1',
+      uses: 'slackapi/slack-github-action@v2.1.1',
       // by default, post steps run only when drift is detected; you can override `if`
       if: "always() && steps.drift.outcome == 'failure'",
+      // Use official inputs: webhook + webhook-type, and a YAML payload with blocks
       with: {
-        payload: '${{ steps.notify.outputs.result }}',
-      },
-      env: {
-        SLACK_WEBHOOK_URL: '${{ secrets.CDK_NOTIFICATIONS_SLACK_WEBHOOK }}',
-        SLACK_WEBHOOK_TYPE: 'INCOMING_WEBHOOK',
+        webhook: '${{ secrets.CDK_NOTIFICATIONS_SLACK_WEBHOOK }}',
+        'webhook-type': 'incoming-webhook',
+        payload: [
+          'text: "** ${{ env.STACK_NAME }} ** has drifted!"',
+          'blocks:',
+          '  - type: "section"',
+          '    text:',
+          '      type: "mrkdwn"',
+          '      text: "*Stack:* ${{ env.STACK_NAME }} (region ${{ env.AWS_REGION }}) has drifted:exclamation:"',
+          '  - type: "section"',
+          '    fields:',
+          '      - type: "mrkdwn"',
+          '        text: "*Stack ARN*\\n${{ steps.drift.outputs.stack-arn }}"',
+          '      - type: "mrkdwn"',
+          '        text: "*Issue*\\n<${{ github.server_url }}/${{ github.repository }}/issues/${{ steps.issue.outputs.result }}|#${{ steps.issue.outputs.result }}>"',
+        ].join('\n'),
       },
     };
     return [step];
@@ -243,16 +259,19 @@ new CdkDriftDetectionWorkflow({
 });
 ```
 
+Note: The Issue link requires `createIssues: true` (default) so that the `Create Issue on Drift` step runs before this Slack step and exposes `steps.issue.outputs.result`. This library orders the steps accordingly.
+
 Details:
 - `postGitHubSteps` can be:
   - an array of step objects, or
   - a factory function `({ stack }) => step | step[]`.
-- Each step you provide is inserted after the results are uploaded and after a `Prepare notification payload` step.
-- The prepared payload is a Slack Block Kit JSON string summarizing results for that stack.
+- Each step you provide is inserted after the results are uploaded.
 - Default condition: if you do not set `if` on your step, it will default to `always() && steps.drift.outcome == 'failure'`.
 - Available context/env you can use:
-  - `${{ env.STAGE_NAME }}`, `${{ env.STACK_NAME }}`, `${{ env.DRIFT_DETECTION_OUTPUT }}`
-  - `${{ steps.notify.outputs.result }}` — Slack payload JSON
+  - `${{ env.STACK_NAME }}`, `${{ env.DRIFT_DETECTION_OUTPUT }}`
+  - `${{ steps.drift.outcome }}` — success/failure of the detect step
+  - `${{ steps.drift.outputs.stack-arn }}` — Stack ARN resolved at runtime
+  - `${{ steps.issue.outputs.result }}` — Issue number if the workflow created/found one (empty when not applicable)
 ```
 
 ## Usage: CdkDriftIamTemplate

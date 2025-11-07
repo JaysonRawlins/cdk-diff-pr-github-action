@@ -32,8 +32,9 @@ export interface CdkDriftDetectionWorkflowProps {
    */
   /**
    * Optional additional GitHub Action steps to run after drift detection for each stack.
-   * These steps are inserted after a 'Prepare notification payload' step which exposes
-   * a Slack-compatible JSON payload at `${{ steps.notify.outputs.result }}`.
+   * These steps run after results are uploaded for each stack. You can include
+   * any notifications you like (e.g., Slack). Provide explicit inputs (e.g., payload/markdown)
+   * directly in your step without relying on a pre-generated payload.
    */
   // NOTE: jsii does not support function types in public APIs; use 'any' here and accept either:
   // - An array of GitHub steps, or
@@ -78,13 +79,13 @@ export class CdkDriftDetectionWorkflow {
     const workflow = new GithubWorkflow(gh, name, { fileName });
 
     // triggers: schedule + manual dispatch with stack choice
-    const stackChoices = props.stacks.map((s) => s.stackName);
+    const stackChoices = ['all', ...props.stacks.map((s) => s.stackName)];
     workflow.on({
       schedule: props.schedule ? [{ cron: props.schedule }] : undefined,
       workflowDispatch: {
         inputs: {
           stack: {
-            description: 'Stack to check for drift (leave empty for all)',
+            description: "Stack to check for drift ('all' to run every stack)",
             required: false,
             type: 'choice',
             options: stackChoices,
@@ -101,7 +102,7 @@ export class CdkDriftDetectionWorkflow {
       const originalStackName = stack.stackName;
       const jobId = `drift-${sanitizedStackName}`;
       const resultsFile = `drift-results-${sanitizedStackName}.json`;
-      const innerCond = "github.event_name == 'schedule' || !github.event.inputs.stack || github.event.inputs.stack == '" + sanitizedStackName + "' || github.event.inputs.stack == '" + originalStackName + "'";
+      const innerCond = "github.event_name == 'schedule' || !github.event.inputs.stack || github.event.inputs.stack == 'all' || github.event.inputs.stack == '" + sanitizedStackName + "' || github.event.inputs.stack == '" + originalStackName + "'";
       const condExpr = '${{ ' + innerCond + ' }}';
       const notCondExpr = '${{ !(' + innerCond + ') }}';
 
@@ -165,10 +166,15 @@ export class CdkDriftDetectionWorkflow {
             id: 'drift',
             continueOnError: true, // allow artifact upload and issue creation even when drift is detected
             run: [
-              'set -e',
+              'set +e',
               // Use the bundled script from this package
               'node ./node_modules/@jjrawlins/cdk-diff-pr-github-action/lib/bin/detect-drift.js',
+              'status=$?',
               'if [ -f "$DRIFT_DETECTION_OUTPUT" ]; then echo "Results file created: $DRIFT_DETECTION_OUTPUT"; fi',
+              // Expose useful outputs for downstream steps
+              "STACK_ARN=$(aws cloudformation describe-stacks --stack-name \"$STACK_NAME\" --query 'Stacks[0].StackId' --output text 2>/dev/null || true)",
+              'echo "stack-arn=$STACK_ARN" >> "$GITHUB_OUTPUT"',
+              'exit $status',
             ].join('\n'),
             env: {
               STACK_NAME: stack.stackName,
@@ -180,45 +186,27 @@ export class CdkDriftDetectionWorkflow {
             name: 'Upload results',
             if: condExpr,
             uses: `actions/upload-artifact@${githubActionsUploadArtifactVersion}`,
-            with: { name: `drift-results-${sanitizedStackName}`, path: resultsFile, ifNoFilesFound: 'ignore' },
+            with: { 'name': `drift-results-${sanitizedStackName}`, 'path': resultsFile, 'if-no-files-found': 'ignore' },
           },
-          {
-            name: 'Prepare notification payload',
-            if: condExpr,
-            id: 'notify',
-            uses: `actions/github-script@${githubActionsGithubScriptVersion}`,
-            with: {
-              'result-encoding': 'string',
-              'script': notificationScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, resultsFile),
-            },
-          },
-          ...postSteps.map((step) => {
-            const s: any = { ...(step as any) };
-            // By default, only run extra notification steps when drift occurs
-            s.if = s.if ?? "always() && steps.drift.outcome == 'failure'";
-            // If this is the Slack GitHub Action and no payload is provided, wire the prepared payload
-            const uses = (s.uses ?? '').toString().toLowerCase();
-            const isSlackAction = uses.includes('slackapi/slack-github-action');
-            if (isSlackAction) {
-              s.with = { ...(s.with ?? {}) };
-              if (s.with.payload == null) {
-                s.with.payload = '${{ steps.notify.outputs.result }}';
-              }
-            }
-            return s;
-          }),
           ...(
             createIssues
               ? [
                 {
                   name: 'Create Issue on Drift',
                   if: "always() && steps.drift.outcome == 'failure'",
+                  id: 'issue',
                   uses: `actions/github-script@${githubActionsGithubScriptVersion}`,
-                  with: { script: issueScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, resultsFile) },
+                  with: { 'result-encoding': 'string', 'script': issueScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, resultsFile) },
                 },
               ]
               : []
           ),
+          ...postSteps.map((step) => {
+            const s: any = { ...(step as any) };
+            // By default, only run extra notification steps when drift occurs
+            s.if = s.if ?? "always() && steps.drift.outcome == 'failure'";
+            return s;
+          }),
         ],
       };
     }
@@ -249,10 +237,10 @@ function issueScript(stack: string, region: string, resultsFile: string): string
   const lines = [
     "const fs = require('fs');",
     `const resultsFile = '${resultsFile}';`,
-    "if (!fs.existsSync(resultsFile)) { console.log('No results file found'); return; }",
+    "if (!fs.existsSync(resultsFile)) { console.log('No results file found'); return 'NO_RESULTS'; }",
     "const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));",
     "const driftedStacks = results.filter(r => r.driftStatus === 'DRIFTED');",
-    "if (driftedStacks.length === 0) { console.log('No drift detected'); return; }",
+    "if (driftedStacks.length === 0) { console.log('No drift detected'); return 'NO_DRIFT'; }",
     `const title = 'Drift Detected in ${stack}';`,
     `let body = '## Drift Detection Report\\n\\n' + '**Stack:** ${stack}\\n' + '**Region:** ${region}\\n' + '**Time:** ' + new Date().toISOString() + '\\n\\n';`,
     "body += '### Summary\\n';",
@@ -270,56 +258,20 @@ function issueScript(stack: string, region: string, resultsFile: string): string
     'body += `[View workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;',
     // List or update an issue with labels
     `const issues = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: ['drift-detection', '${stack}'] });`,
+    'let issueNumber;',
     'if (issues.data.length === 0) {',
-    `  await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['drift-detection', '${stack}'] });`,
+    `  const created = await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['drift-detection', '${stack}'] });`,
+    '  issueNumber = created.data.number;',
     '} else {',
     '  const issue = issues.data[0];',
+    '  issueNumber = issue.number;',
     '  await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body });',
     '}',
+    'return String(issueNumber ?? "");',
   ];
   return lines.join('\n');
 }
 
-function notificationScript(stack: string, region: string, resultsFile: string): string {
-  const lines = [
-    "const fs = require('fs');",
-    `const resultsFile = '${resultsFile}';`,
-    'let payload;',
-    'if (!fs.existsSync(resultsFile)) {',
-    `  payload = { text: 'Drift Detection (${stack}) - No results found', blocks: [`,
-    `    { type: 'section', text: { type: 'mrkdwn', text: '*Drift Detection (${stack})*' } },`,
-    "    { type: 'section', text: { type: 'mrkdwn', text: 'No results file found. The detection step may have been skipped.' } }",
-    '  ] };',
-    '  return JSON.stringify(payload);',
-    '}',
-    "const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));",
-    "const drifted = results.filter(r => r.driftStatus === 'DRIFTED');",
-    'const errors = results.filter(r => r.error);',
-    `const header = '*Drift Detection (${stack})* — Region: ${region}';`,
-    'const summary = "Total stacks: " + results.length + " | Drifted: " + drifted.length + " | Errors: " + errors.length;',
-    'const linesArr = [];',
-    'for (const s of drifted) {',
-    '  const count = (s.driftedResources || []).length;',
-    "  linesArr.push('• ' + s.stackName + ' — ' + count + ' resource(s) drifted');",
-    '}',
-    'payload = {',
-    `  text: 'Drift Detection (${stack})',`,
-    '  blocks: [',
-    "    { type: 'section', text: { type: 'mrkdwn', text: header } },",
-    "    { type: 'context', elements: [{ type: 'mrkdwn', text: summary }] },",
-    '    ...(drifted.length > 0 ? [',
-    "      { type: 'divider' },",
-    "      { type: 'section', text: { type: 'mrkdwn', text: '*Drifted Stacks:*\n' + linesArr.join('\n') } }",
-    '    ] : [',
-    "      { type: 'divider' },",
-    "      { type: 'section', text: { type: 'mrkdwn', text: 'No drift detected.' } }",
-    '    ])',
-    '  ]',
-    '};',
-    'return JSON.stringify(payload);',
-  ];
-  return lines.join('\n');
-}
 
 function summaryScript(): string {
   return [
