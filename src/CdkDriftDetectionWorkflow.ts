@@ -26,6 +26,16 @@ export interface CdkDriftDetectionWorkflowProps {
   readonly oidcRegion: string; // default OIDC region to assume for all stacks
   readonly stacks: Stack[];
   readonly nodeVersion?: string; // e.g., '24.x'
+  /**
+   * Optional hook to append additional GitHub Actions steps after drift detection per stack.
+   * You can supply a static array of steps, or a factory that receives context and returns steps.
+   */
+  /**
+   * Optional additional GitHub Action steps to run after drift detection for each stack.
+   * These steps are inserted after a 'Prepare notification payload' step which exposes
+   * a Slack-compatible JSON payload at `${{ steps.notify.outputs.result }}`.
+   */
+  readonly postGitHubSteps?: any[];
 }
 
 export class CdkDriftDetectionWorkflow {
@@ -69,6 +79,9 @@ export class CdkDriftDetectionWorkflow {
 
     // One job per stage
     const jobs: Record<string, any> = {};
+
+    const postSteps: any[] = Array.isArray((props as any).postGitHubSteps) ? (props as any).postGitHubSteps : [];
+
     for (const stack of props.stacks) {
       const short = stack.stackName ?? stageFromStack(stack.stackName);
       const jobId = `drift-${short}`;
@@ -151,6 +164,21 @@ export class CdkDriftDetectionWorkflow {
             uses: `actions/upload-artifact@${githubActionsUploadArtifactVersion}`,
             with: { name: `drift-results-${short}`, path: resultsFile, ifNoFilesFound: 'ignore' },
           },
+          {
+            name: 'Prepare notification payload',
+            if: condExpr,
+            id: 'notify',
+            uses: `actions/github-script@${githubActionsGithubScriptVersion}`,
+            with: {
+              'result-encoding': 'string',
+              'script': notificationScript(short, stack.driftDetectionRoleToAssumeRegion, resultsFile),
+            },
+          },
+          ...postSteps.map((step) => ({
+            // By default, only run extra notification steps when drift occurs
+            if: (step as any).if ?? "always() && steps.drift.outcome == 'failure'",
+            ...(step as any),
+          })),
           ...(
             createIssues
               ? [
@@ -224,6 +252,47 @@ function issueScript(stage: string, region: string, resultsFile: string): string
     '  const issue = issues.data[0];',
     '  await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body });',
     '}',
+  ];
+  return lines.join('\n');
+}
+
+function notificationScript(stage: string, region: string, resultsFile: string): string {
+  const lines = [
+    "const fs = require('fs');",
+    `const resultsFile = '${resultsFile}';`,
+    'let payload;',
+    'if (!fs.existsSync(resultsFile)) {',
+    '  payload = { text: `Drift Detection (${stage}) - No results found`, blocks: [',
+    "    { type: 'section', text: { type: 'mrkdwn', text: `*Drift Detection (${stage})*` } },",
+    "    { type: 'section', text: { type: 'mrkdwn', text: 'No results file found. The detection step may have been skipped.' } }",
+    '  ] };',
+    '  return JSON.stringify(payload);',
+    '}',
+    "const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));",
+    "const drifted = results.filter(r => r.driftStatus === 'DRIFTED');",
+    'const errors = results.filter(r => r.error);',
+    `const header = \`*Drift Detection (${stage})* — Region: ${region}\`;`,
+    'const summary = `Total stacks: ${results.length} | Drifted: ${drifted.length} | Errors: ${errors.length}`;',
+    'const linesArr = [];',
+    'for (const s of drifted) {',
+    '  const count = (s.driftedResources || []).length;',
+    '  linesArr.push(`• ${s.stackName} — ${count} resource(s) drifted`);',
+    '}',
+    'payload = {',
+    '  text: `Drift Detection (${stage})`,',
+    '  blocks: [',
+    "    { type: 'section', text: { type: 'mrkdwn', text: header } },",
+    "    { type: 'context', elements: [{ type: 'mrkdwn', text: summary }] },",
+    '    ...(drifted.length > 0 ? [',
+    "      { type: 'divider' },",
+    "      { type: 'section', text: { type: 'mrkdwn', text: '*Drifted Stacks:*\n' + linesArr.join('\n') } }",
+    '    ] : [',
+    "      { type: 'divider' },",
+    "      { type: 'section', text: { type: 'mrkdwn', text: 'No drift detected.' } }",
+    '    ])',
+    '  ]',
+    '};',
+    'return JSON.stringify(payload);',
   ];
   return lines.join('\n');
 }

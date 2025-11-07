@@ -209,6 +209,52 @@ project.synth();
 
 Note: The default workflow does not post PR comments for drift. It can create/update an Issue on scheduled runs when `createIssues` is `true`.
 
+### Post-notification steps (e.g., Slack)
+
+You can add your own GitHub Action steps to run after the drift detection step for each stack using `postGitHubSteps`.
+These steps receive a prepared Slack-compatible JSON payload via `${{ steps.notify.outputs.result }}` from an earlier step.
+
+Example: Send Slack notification (only when drift occurs) using slackapi/slack-github-action@v1
+
+```ts
+new CdkDriftDetectionWorkflow({
+  project,
+  oidcRoleArn: 'arn:aws:iam::123456789012:role/github-oidc-role',
+  oidcRegion: 'us-east-1',
+  stacks: [/* ... */],
+  postGitHubSteps: ({ stage }) => {
+    // Build a descriptive name per stage
+    const name = `Notify Slack (${stage} post-drift)`;
+    const step = {
+      name,
+      uses: 'slackapi/slack-github-action@v1',
+      // by default, post steps run only when drift is detected; you can override `if`
+      if: "always() && steps.drift.outcome == 'failure'",
+      with: {
+        payload: '${{ steps.notify.outputs.result }}',
+      },
+      env: {
+        SLACK_WEBHOOK_URL: '${{ secrets.CDK_NOTIFICATIONS_SLACK_WEBHOOK }}',
+        SLACK_WEBHOOK_TYPE: 'INCOMING_WEBHOOK',
+      },
+    };
+    return [step];
+  },
+});
+```
+
+Details:
+- `postGitHubSteps` can be:
+  - an array of step objects, or
+  - a factory function `({ stage, stack, resultsFile }) => step | step[]`.
+- Each step you provide is inserted after the results are uploaded and after a `Prepare notification payload` step.
+- The prepared payload is a Slack Block Kit JSON string summarizing results for that stack/stage.
+- Default condition: if you do not set `if` on your step, it will default to `always() && steps.drift.outcome == 'failure'`.
+- Available context/env you can use:
+  - `${{ env.STAGE_NAME }}`, `${{ env.STACK_NAME }}`, `${{ env.DRIFT_DETECTION_OUTPUT }}`
+  - `${{ steps.notify.outputs.result }}` — Slack payload JSON
+```
+
 ## Usage: CdkDriftIamTemplate
 
 Emit an example IAM template you can deploy in your account for the Drift Detection workflow:
