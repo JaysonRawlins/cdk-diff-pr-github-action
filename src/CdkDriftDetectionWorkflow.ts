@@ -35,8 +35,24 @@ export interface CdkDriftDetectionWorkflowProps {
    * These steps are inserted after a 'Prepare notification payload' step which exposes
    * a Slack-compatible JSON payload at `${{ steps.notify.outputs.result }}`.
    */
-  readonly postGitHubSteps?: any[];
+  // NOTE: jsii does not support function types in public APIs; use 'any' here and accept either:
+  // - An array of GitHub steps, or
+  // - A function (ctx: { stack: string }) => GitHubStep[]
+  // The constructor handles both at runtime.
+  readonly postGitHubSteps?: any;
 }
+
+type GitHubStep = {
+  name?: string;
+  id?: string;
+  if?: string;
+  uses?: string;
+  run?: string;
+  with?: Record<string, any>;
+  env?: Record<string, string>;
+  continueOnError?: boolean;
+  shell?: string;
+};
 
 export class CdkDriftDetectionWorkflow {
   private static scriptCreated = false;
@@ -61,37 +77,39 @@ export class CdkDriftDetectionWorkflow {
     const gh = (project as any).github ?? new GitHub(project);
     const workflow = new GithubWorkflow(gh, name, { fileName });
 
-    // triggers: schedule + manual dispatch with stage choice
-    const stageChoices = props.stacks.map((s) => s.stackName ?? stageFromStack(s.stackName));
+    // triggers: schedule + manual dispatch with stack choice
+    const stackChoices = props.stacks.map((s) => s.stackName);
     workflow.on({
       schedule: props.schedule ? [{ cron: props.schedule }] : undefined,
       workflowDispatch: {
         inputs: {
-          stage: {
-            description: 'Stage to check for drift (leave empty for all)',
+          stack: {
+            description: 'Stack to check for drift (leave empty for all)',
             required: false,
             type: 'choice',
-            options: stageChoices,
+            options: stackChoices,
           },
         },
       },
     });
 
-    // One job per stage
+    // One job per stack
     const jobs: Record<string, any> = {};
 
-    const postSteps: any[] = Array.isArray((props as any).postGitHubSteps) ? (props as any).postGitHubSteps : [];
-
     for (const stack of props.stacks) {
-      const short = stack.stackName ?? stageFromStack(stack.stackName);
-      const jobId = `drift-${short}`;
-      const resultsFile = `drift-results-${short}.json`;
-      const innerCond = "github.event_name == 'schedule' || !github.event.inputs.stage || github.event.inputs.stage == '" + short + "'";
+      const sanitizedStackName = toKebabCase(toGithubJobId(stack.stackName));
+      const originalStackName = stack.stackName;
+      const jobId = `drift-${sanitizedStackName}`;
+      const resultsFile = `drift-results-${sanitizedStackName}.json`;
+      const innerCond = "github.event_name == 'schedule' || !github.event.inputs.stack || github.event.inputs.stack == '" + sanitizedStackName + "' || github.event.inputs.stack == '" + originalStackName + "'";
       const condExpr = '${{ ' + innerCond + ' }}';
       const notCondExpr = '${{ !(' + innerCond + ') }}';
 
+      const rawPost = props.postGitHubSteps;
+      const postSteps: GitHubStep[] = typeof rawPost === 'function' ? (rawPost as (ctx: { stack: string }) => GitHubStep[])({ stack: sanitizedStackName }) : (rawPost ?? []);
+
       jobs[jobId] = {
-        name: `Drift Detection - ${short}`,
+        name: `Drift Detection - ${sanitizedStackName}`,
         runsOn: ['ubuntu-latest'],
         permissions: {
           contents: JobPermission.READ,
@@ -102,12 +120,12 @@ export class CdkDriftDetectionWorkflow {
           AWS_DEFAULT_REGION: stack.driftDetectionRoleToAssumeRegion,
           AWS_REGION: stack.driftDetectionRoleToAssumeRegion,
           DRIFT_DETECTION_OUTPUT: resultsFile,
-          STAGE_NAME: short,
+          STACK_ID: sanitizedStackName,
           STACK_NAME: stack.stackName,
         },
         // No job-level condition; we gate steps so the job always completes and summary can run
         steps: [
-          { name: 'Skip (stage not selected)', if: notCondExpr, run: 'echo "Stage not selected; skipping drift detection for this job."' },
+          { name: 'Skip (stack not selected)', if: notCondExpr, run: 'echo "Stack not selected; skipping drift detection for this job."' },
           { name: 'Checkout', if: condExpr, uses: `actions/checkout@${githubActionsCheckoutVersion}` },
           {
             name: 'Setup Node.js',
@@ -162,7 +180,7 @@ export class CdkDriftDetectionWorkflow {
             name: 'Upload results',
             if: condExpr,
             uses: `actions/upload-artifact@${githubActionsUploadArtifactVersion}`,
-            with: { name: `drift-results-${short}`, path: resultsFile, ifNoFilesFound: 'ignore' },
+            with: { name: `drift-results-${sanitizedStackName}`, path: resultsFile, ifNoFilesFound: 'ignore' },
           },
           {
             name: 'Prepare notification payload',
@@ -171,14 +189,24 @@ export class CdkDriftDetectionWorkflow {
             uses: `actions/github-script@${githubActionsGithubScriptVersion}`,
             with: {
               'result-encoding': 'string',
-              'script': notificationScript(short, stack.driftDetectionRoleToAssumeRegion, resultsFile),
+              'script': notificationScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, resultsFile),
             },
           },
-          ...postSteps.map((step) => ({
+          ...postSteps.map((step) => {
+            const s: any = { ...(step as any) };
             // By default, only run extra notification steps when drift occurs
-            if: (step as any).if ?? "always() && steps.drift.outcome == 'failure'",
-            ...(step as any),
-          })),
+            s.if = s.if ?? "always() && steps.drift.outcome == 'failure'";
+            // If this is the Slack GitHub Action and no payload is provided, wire the prepared payload
+            const uses = (s.uses ?? '').toString().toLowerCase();
+            const isSlackAction = uses.includes('slackapi/slack-github-action');
+            if (isSlackAction) {
+              s.with = { ...(s.with ?? {}) };
+              if (s.with.payload == null) {
+                s.with.payload = '${{ steps.notify.outputs.result }}';
+              }
+            }
+            return s;
+          }),
           ...(
             createIssues
               ? [
@@ -186,7 +214,7 @@ export class CdkDriftDetectionWorkflow {
                   name: 'Create Issue on Drift',
                   if: "always() && steps.drift.outcome == 'failure'",
                   uses: `actions/github-script@${githubActionsGithubScriptVersion}`,
-                  with: { script: issueScript(short, stack.driftDetectionRoleToAssumeRegion, resultsFile) },
+                  with: { script: issueScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, resultsFile) },
                 },
               ]
               : []
@@ -215,12 +243,8 @@ export class CdkDriftDetectionWorkflow {
   }
 }
 
-function stageFromStack(stackName: string): string {
-  const parts = stackName.split('-');
-  return parts[parts.length - 1] || stackName;
-}
 
-function issueScript(stage: string, region: string, resultsFile: string): string {
+function issueScript(stack: string, region: string, resultsFile: string): string {
   // Construct a plain JS script string (no template string nesting mishaps)
   const lines = [
     "const fs = require('fs');",
@@ -229,8 +253,8 @@ function issueScript(stage: string, region: string, resultsFile: string): string
     "const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));",
     "const driftedStacks = results.filter(r => r.driftStatus === 'DRIFTED');",
     "if (driftedStacks.length === 0) { console.log('No drift detected'); return; }",
-    `const title = 'Drift Detected in ${stage}';`,
-    `let body = '## Drift Detection Report\\n\\n' + '**Stage:** ${stage}\\n' + '**Region:** ${region}\\n' + '**Time:** ' + new Date().toISOString() + '\\n\\n';`,
+    `const title = 'Drift Detected in ${stack}';`,
+    `let body = '## Drift Detection Report\\n\\n' + '**Stack:** ${stack}\\n' + '**Region:** ${region}\\n' + '**Time:** ' + new Date().toISOString() + '\\n\\n';`,
     "body += '### Summary\\n';",
     "body += '- Total stacks checked: ' + results.length + '\\n';",
     "body += '- Drifted stacks: ' + driftedStacks.length + '\\n\\n';",
@@ -245,9 +269,9 @@ function issueScript(stage: string, region: string, resultsFile: string): string
     "body += '### Action Required\\n' + 'Please review the drifted resources and either:\\n1. Update the infrastructure code to match the actual state\\n2. Restore the resources to match the expected state\\n\\n';",
     'body += `[View workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;',
     // List or update an issue with labels
-    `const issues = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: ['drift-detection', '${stage}'] });`,
+    `const issues = await github.rest.issues.listForRepo({ owner: context.repo.owner, repo: context.repo.repo, state: 'open', labels: ['drift-detection', '${stack}'] });`,
     'if (issues.data.length === 0) {',
-    `  await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['drift-detection', '${stage}'] });`,
+    `  await github.rest.issues.create({ owner: context.repo.owner, repo: context.repo.repo, title, body, labels: ['drift-detection', '${stack}'] });`,
     '} else {',
     '  const issue = issues.data[0];',
     '  await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: issue.number, body });',
@@ -256,14 +280,14 @@ function issueScript(stage: string, region: string, resultsFile: string): string
   return lines.join('\n');
 }
 
-function notificationScript(stage: string, region: string, resultsFile: string): string {
+function notificationScript(stack: string, region: string, resultsFile: string): string {
   const lines = [
     "const fs = require('fs');",
     `const resultsFile = '${resultsFile}';`,
     'let payload;',
     'if (!fs.existsSync(resultsFile)) {',
-    '  payload = { text: `Drift Detection (${stage}) - No results found`, blocks: [',
-    "    { type: 'section', text: { type: 'mrkdwn', text: `*Drift Detection (${stage})*` } },",
+    `  payload = { text: 'Drift Detection (${stack}) - No results found', blocks: [`,
+    `    { type: 'section', text: { type: 'mrkdwn', text: '*Drift Detection (${stack})*' } },`,
     "    { type: 'section', text: { type: 'mrkdwn', text: 'No results file found. The detection step may have been skipped.' } }",
     '  ] };',
     '  return JSON.stringify(payload);',
@@ -271,15 +295,15 @@ function notificationScript(stage: string, region: string, resultsFile: string):
     "const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));",
     "const drifted = results.filter(r => r.driftStatus === 'DRIFTED');",
     'const errors = results.filter(r => r.error);',
-    `const header = \`*Drift Detection (${stage})* — Region: ${region}\`;`,
-    'const summary = `Total stacks: ${results.length} | Drifted: ${drifted.length} | Errors: ${errors.length}`;',
+    `const header = '*Drift Detection (${stack})* — Region: ${region}';`,
+    'const summary = "Total stacks: " + results.length + " | Drifted: " + drifted.length + " | Errors: " + errors.length;',
     'const linesArr = [];',
     'for (const s of drifted) {',
     '  const count = (s.driftedResources || []).length;',
-    '  linesArr.push(`• ${s.stackName} — ${count} resource(s) drifted`);',
+    "  linesArr.push('• ' + s.stackName + ' — ' + count + ' resource(s) drifted');",
     '}',
     'payload = {',
-    '  text: `Drift Detection (${stage})`,',
+    `  text: 'Drift Detection (${stack})',`,
     '  blocks: [',
     "    { type: 'section', text: { type: 'mrkdwn', text: header } },",
     "    { type: 'context', elements: [{ type: 'mrkdwn', text: summary }] },",
@@ -311,8 +335,8 @@ function summaryScript(): string {
     'shopt -s nullglob',
     'for file in drift-results-*.json drift-results/*/drift-results-*.json; do',
     '  if [[ -f "$file" ]]; then',
-    '    stage=$(basename "$file" | sed -E \"s/^drift-results-([^.]+)\\.json$/\\1/\")',
-    '    echo "### Stage: $stage" >> $GITHUB_STEP_SUMMARY',
+    '    stack=$(basename "$file" | sed -E \"s/^drift-results-([^.]+)\\.json$/\\1/\")',
+    '    echo "### Stack: $stack" >> $GITHUB_STEP_SUMMARY',
     '    jq -r \'' +
       '. as $results |\n' +
       '"- Total stacks: " + ($results | length | tostring) + "\\n" +\n' +
@@ -342,4 +366,22 @@ function summaryScript(): string {
 
 function toKebabCase(s: string): string {
   return s.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+
+
+function toGithubJobId(s: string): string {
+  // GitHub job_id must start with a letter or underscore and contain only A-Za-z0-9, '-', '_'
+  // 1) Replace any disallowed chars with '-'
+  let out = s.replace(/[^A-Za-z0-9_-]+/g, '-');
+  // 2) Collapse consecutive dashes
+  out = out.replace(/-+/g, '-');
+  // 3) Trim leading/trailing dashes (underscores are allowed at start)
+  out = out.replace(/^-+|-+$/g, '');
+  // 4) Lowercase for consistency (not required by GitHub but keeps things stable)
+  out = out.toLowerCase();
+  // 5) Ensure it starts with a letter or underscore
+  if (!out || !/^[a-z_]/i.test(out)) {
+    out = `s-${out}`;
+  }
+  return out;
 }

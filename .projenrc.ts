@@ -14,6 +14,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorAddress: 'JaysonJ.Rawlins@gmail.com',
   packageName: '@jjrawlins/cdk-diff-pr-github-action',
   minNodeVersion: minNodeVersion,
+  stability: 'experimental',
   cdkVersion: cdkVersion,
   cdkCliVersion: cdkCliVersion,
   projenVersion: `^${minProjenVersion}`,

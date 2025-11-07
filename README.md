@@ -204,7 +204,7 @@ project.synth();
   - Prints to stdout and appends to the GitHub Step Summary when available
 
 ### Artifacts and summary
-- Each stack job uploads `drift-results-<stage>.json` (if produced).
+- Each stack job uploads `drift-results-<stack>.json` (if produced).
 - A final `Drift Detection Summary` job downloads all artifacts and prints a consolidated summary.
 
 Note: The default workflow does not post PR comments for drift. It can create/update an Issue on scheduled runs when `createIssues` is `true`.
@@ -222,9 +222,9 @@ new CdkDriftDetectionWorkflow({
   oidcRoleArn: 'arn:aws:iam::123456789012:role/github-oidc-role',
   oidcRegion: 'us-east-1',
   stacks: [/* ... */],
-  postGitHubSteps: ({ stage }) => {
-    // Build a descriptive name per stage
-    const name = `Notify Slack (${stage} post-drift)`;
+  postGitHubSteps: ({ stack }) => {
+    // Build a descriptive name per stack
+    const name = `Notify Slack (${stack} post-drift)`;
     const step = {
       name,
       uses: 'slackapi/slack-github-action@v1',
@@ -246,9 +246,9 @@ new CdkDriftDetectionWorkflow({
 Details:
 - `postGitHubSteps` can be:
   - an array of step objects, or
-  - a factory function `({ stage, stack, resultsFile }) => step | step[]`.
+  - a factory function `({ stack }) => step | step[]`.
 - Each step you provide is inserted after the results are uploaded and after a `Prepare notification payload` step.
-- The prepared payload is a Slack Block Kit JSON string summarizing results for that stack/stage.
+- The prepared payload is a Slack Block Kit JSON string summarizing results for that stack.
 - Default condition: if you do not set `if` on your step, it will default to `always() && steps.drift.outcome == 'failure'`.
 - Available context/env you can use:
   - `${{ env.STAGE_NAME }}`, `${{ env.STACK_NAME }}`, `${{ env.DRIFT_DETECTION_OUTPUT }}`
