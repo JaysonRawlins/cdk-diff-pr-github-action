@@ -261,6 +261,7 @@ const cdkDriftDetectionWorkflowProps: CdkDriftDetectionWorkflowProps = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.stacks">stacks</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack">Stack</a>[]</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.createIssues">createIssues</a></code> | <code>boolean</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.nodeVersion">nodeVersion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.postGitHubSteps">postGitHubSteps</a></code> | <code>any</code> | Optional additional GitHub Action steps to run after drift detection for each stack. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.schedule">schedule</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workflowName">workflowName</a></code> | <code>string</code> | *No description.* |
@@ -324,6 +325,22 @@ public readonly nodeVersion: string;
 ```
 
 - *Type:* string
+
+---
+
+##### `postGitHubSteps`<sup>Optional</sup> <a name="postGitHubSteps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.postGitHubSteps"></a>
+
+```typescript
+public readonly postGitHubSteps: any;
+```
+
+- *Type:* any
+
+Optional additional GitHub Action steps to run after drift detection for each stack.
+
+These steps run after results are uploaded for each stack. You can include
+any notifications you like (e.g., Slack). Provide explicit inputs (e.g., payload/markdown)
+directly in your step without relying on a pre-generated payload.
 
 ---
 
