@@ -19,11 +19,13 @@
     "package-all": "npx projen package-all",
     "package:js": "npx projen package:js",
     "post-compile": "npx projen post-compile",
+    "post-upgrade": "npx projen post-upgrade",
     "pre-compile": "npx projen pre-compile",
     "release": "npx projen release",
     "test": "npx projen test",
     "test:watch": "npx projen test:watch",
     "unbump": "npx projen unbump",
+    "upgrade": "npx projen upgrade",
     "watch": "npx projen watch",
     "projen": "npx projen"
   },
@@ -33,7 +35,7 @@
     "organization": false
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.921.0",
+    "@aws-sdk/types": "^3.922.0",
     "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.20",
@@ -54,25 +56,27 @@
     "jsii-docgen": "^10.5.0",
     "jsii-pacmak": "^1.118.0",
     "jsii-rosetta": "~5.8.0",
-    "projen": "^0.95.4",
+    "projen": "^0.95.6",
     "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
     "aws-cdk-lib": "^2.85.0",
-    "constructs": "^10.0.5"
+    "constructs": ">=10.0.5 <11.0.0"
   },
   "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.922.0",
     "@types/crypto-js": "^4.2.2",
     "@types/js-yaml": "^4.0.9",
-    "constructs": "^10.0.5",
     "crypto-js": "^4.2.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "lodash.merge": "^4.6.2"
+    "lodash.merge": "^4.6.2",
+    "projen": "^0.95.6"
   },
   "bundledDependencies": [
+    "@aws-sdk/client-cloudformation",
     "@types/crypto-js",
     "@types/js-yaml",
     "crypto-js",
@@ -84,7 +88,8 @@
     "form-data": "^4.0.4",
     "@eslint/plugin-kit": "^0.3.4",
     "aws-cdk-lib": ">=2.85.0 <3.0.0",
-    "constructs": ">=10.0.0 <11.0.0"
+    "constructs": "10.0.5",
+    "projen": ">=0.95.6 <1.0.0"
   },
   "keywords": [
     "action",
@@ -99,6 +104,9 @@
   },
   "main": "lib/index.js",
   "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "0.0.0",
   "jest": {
     "coverageProvider": "v8",
@@ -146,7 +154,7 @@
     }
   },
   "types": "lib/index.d.ts",
-  "stability": "stable",
+  "stability": "experimental",
   "jsii": {
     "outdir": "dist",
     "targets": {},

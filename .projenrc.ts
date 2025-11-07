@@ -1,11 +1,13 @@
-import { awscdk, TextFile } from 'projen';
+import { awscdk, TextFile, DependencyType } from 'projen';
 import { GithubCredentials } from 'projen/lib/github';
+import { NpmAccess } from 'projen/lib/javascript';
 const cdkCliVersion = '2.1029.2';
 const minNodeVersion = '20.9.0';
 const jsiiVersion = '~5.8.0';
-const cdkVersion = '2.85.0'; // Required
-const projenVersion = '^0.95.4'; // Does not affect consumers of the library
-const minConstructsVersion = '10.0.5'; // Minimum version to support CDK v2
+const cdkVersion = '2.85.0'; // Minimum CDK Version Required
+const minProjenVersion = '0.95.6'; // Does not affect consumers of the library
+const minConstructsVersion = '10.0.5'; // Minimum version to support CDK v2 and does affect consumers of the library
+const devConstructsVersion = '10.0.5'; // Pin for local dev/build to avoid jsii type conflicts
 const project = new awscdk.AwsCdkConstructLibrary({
   author: 'Jayson Rawlins',
   description: 'A GitHub Action that creates a CDK diff for a pull request.',
@@ -13,9 +15,10 @@ const project = new awscdk.AwsCdkConstructLibrary({
   authorAddress: 'JaysonJ.Rawlins@gmail.com',
   packageName: '@jjrawlins/cdk-diff-pr-github-action',
   minNodeVersion: minNodeVersion,
+  stability: 'experimental',
   cdkVersion: cdkVersion,
   cdkCliVersion: cdkCliVersion,
-  projenVersion: projenVersion,
+  projenVersion: `^${minProjenVersion}`,
   defaultReleaseBranch: 'main',
   license: 'Apache-2.0',
   jsiiVersion: jsiiVersion,
@@ -49,25 +52,26 @@ const project = new awscdk.AwsCdkConstructLibrary({
       },
     },
   },
-  depsUpgrade: false,
+  depsUpgrade: true,
   peerDeps: [
-    'aws-cdk-lib', // recommend using version 189 or greater due to security updates
-    'constructs',
+    `aws-cdk-lib@>=${cdkVersion} <3.0.0`,
+    `constructs@>=${minConstructsVersion} <11.0.0`,
   ],
   deps: [ // Does affect consumers of the library
-    'constructs',
     'crypto-js',
     'lodash',
+    'projen',
+    '@aws-sdk/client-cloudformation',
   ],
   devDeps: [ // Does not affect consumers of the library
     `aws-cdk@${cdkCliVersion}`,
     `aws-cdk-lib@${cdkVersion}`,
-    `constructs@^${minConstructsVersion}`,
     '@aws-sdk/types',
     '@types/node',
     '@types/lodash',
   ],
   bundledDeps: [
+    '@aws-sdk/client-cloudformation',
     '@types/js-yaml',
     'js-yaml',
     'lodash.merge',
@@ -82,16 +86,20 @@ const project = new awscdk.AwsCdkConstructLibrary({
     'cdk.context.json',
     'tsconfig.json',
     '.dccache',
+    '.yalc',
   ],
-  releaseToNpm: false,
+  npmAccess: NpmAccess.PUBLIC,
+  releaseToNpm: true,
 });
 
 // Add Yarn resolutions to ensure patched transitive versions
 project.package.addField('resolutions', {
   'form-data': '^4.0.4',
   '@eslint/plugin-kit': '^0.3.4',
-  'aws-cdk-lib': '>=2.85.0 <3.0.0',
-  'constructs': '>=10.0.0 <11.0.0',
+  'aws-cdk-lib': `>=${cdkVersion} <3.0.0`,
+  // Pin constructs for local dev/build to a single version to avoid jsii conflicts
+  'constructs': devConstructsVersion,
+  'projen': `>=${minProjenVersion} <1.0.0`,
 });
 
 new TextFile(project, '.tool-versions', {
@@ -102,7 +110,37 @@ new TextFile(project, '.tool-versions', {
   ],
 });
 
-project.addDevDeps(`constructs@^${minConstructsVersion}`);
+// Ensure 'constructs' is only a peer dependency (avoid duplicates that cause jsii conflicts)
+project.deps.removeDependency('constructs');
+project.deps.addDependency(`constructs@>=${minConstructsVersion} <11.0.0`, DependencyType.PEER);
+
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.upgrade.permissions.id-token', 'write');
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.upgrade.permissions.packages', 'write');
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.upgrade.permissions.pull-requests', 'write');
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.upgrade.permissions.contents', 'write');
+
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.id-token', 'write');
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.packages', 'write');
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.pull-requests', 'write');
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.contents', 'write');
+
+
+/**
+ * For the build job, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
+ * This is needed to be able to install dependencies from GitHub Packages during the build.
+ */
+project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissions.id-token', 'write');
+project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissions.packages', 'read');
+
+/** * For the release jobs, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
+*/
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release.permissions.id-token', 'write');
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release.permissions.packages', 'read');
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release.permissions.contents', 'write');
+
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.permissions.id-token', 'write');
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.permissions.packages', 'read');
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.permissions.contents', 'write');
 
 project.synth();
 
