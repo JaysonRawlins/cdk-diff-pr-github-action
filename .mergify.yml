@@ -5,10 +5,10 @@ queue_rules:
     queue_conditions:
       - -label~=(do-not-merge)
       - status-success=build
-      - status-success=package-js
-      - status-success=package-python
-      - status-success=package-go
-      - status-success=package-dotnet
+      - check-success-or-neutral=package-js
+      - check-success-or-neutral=package-python
+      - check-success-or-neutral=package-go
+      - check-success-or-neutral=package-dotnet
       - author=projenbuildmanager[bot]
     merge_method: squash
     autosquash: true
@@ -23,10 +23,10 @@ queue_rules:
       - head=github-actions/upgrade-main
       - -label~=(do-not-merge)
       - status-success=build
-      - status-success=package-js
-      - status-success=package-python
-      - status-success=package-go
-      - status-success=package-dotnet
+      - check-success-or-neutral=package-js
+      - check-success-or-neutral=package-python
+      - check-success-or-neutral=package-go
+      - check-success-or-neutral=package-dotnet
     update_method: rebase
     merge_method: squash
     autoqueue: true
@@ -37,10 +37,10 @@ queue_rules:
       - head=github-actions/upgrade
       - -label~=(do-not-merge)
       - status-success=build
-      - status-success=package-js
-      - status-success=package-python
-      - status-success=package-go
-      - status-success=package-dotnet
+      - check-success-or-neutral=package-js
+      - check-success-or-neutral=package-python
+      - check-success-or-neutral=package-go
+      - check-success-or-neutral=package-dotnet
     autoqueue: true
     autosquash: true
   - name: Queue PRs with approved label
@@ -49,10 +49,10 @@ queue_rules:
       - label=approved
       - -label~=(do-not-merge)
       - status-success=build
-      - status-success=package-js
-      - status-success=package-python
-      - status-success=package-go
-      - status-success=package-dotnet
+      - check-success-or-neutral=package-js
+      - check-success-or-neutral=package-python
+      - check-success-or-neutral=package-go
+      - check-success-or-neutral=package-dotnet
       - author=jjrawlins
     update_method: rebase
     autoqueue: true
@@ -64,10 +64,10 @@ pull_request_rules:
       - "#approved-reviews-by >= 1"
       - -label~=(do-not-merge)
       - status-success=build
-      - status-success=package-js
-      - status-success=package-python
-      - status-success=package-go
-      - status-success=package-dotnet
+      - check-success-or-neutral=package-js
+      - check-success-or-neutral=package-python
+      - check-success-or-neutral=package-go
+      - check-success-or-neutral=package-dotnet
       - -author=jjrawlins
       - approved-reviews-by=jjrawlins
       - or:
@@ -75,18 +75,18 @@ pull_request_rules:
           - label=approved
           - author=jjrawlins
           - status-success=build
-          - status-success=package-js
-          - status-success=package-python
-          - status-success=package-go
-          - status-success=package-dotnet
+          - check-success-or-neutral=package-js
+          - check-success-or-neutral=package-python
+          - check-success-or-neutral=package-go
+          - check-success-or-neutral=package-dotnet
       - or:
           - label~=(do-not-merge)
           - author=projenbuildmanager[bot]
           - status-success=build
-          - status-success=package-js
-          - status-success=package-python
-          - status-success=package-go
-          - status-success=package-dotnet
+          - check-success-or-neutral=package-js
+          - check-success-or-neutral=package-python
+          - check-success-or-neutral=package-go
+          - check-success-or-neutral=package-dotnet
           - head=github-actions/upgrade
           - or:
               - head=github-actions/upgrade-main
