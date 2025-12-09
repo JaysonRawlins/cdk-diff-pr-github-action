@@ -124,6 +124,15 @@ project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.perm
 project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.pull-requests', 'write');
 project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.contents', 'write');
 
+// Add auto-merge step to upgrade-main workflow (step index 6, after PR creation)
+project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.steps.6', {
+  name: 'Enable auto-merge',
+  if: "steps.create-pr.outputs.pull-request-number != ''",
+  run: 'gh pr merge --auto --squash "${{ steps.create-pr.outputs.pull-request-number }}"',
+  env: {
+    GH_TOKEN: '${{ steps.generate_token.outputs.token }}',
+  },
+});
 
 /**
  * For the build job, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
