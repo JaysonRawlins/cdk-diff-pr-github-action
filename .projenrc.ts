@@ -3,9 +3,9 @@ import { GithubCredentials } from 'projen/lib/github';
 import { NpmAccess } from 'projen/lib/javascript';
 const cdkCliVersion = '2.1029.2';
 const minNodeVersion = '20.9.0';
-const jsiiVersion = '~5.8.0';
+const jsiiVersion = '^5.8.0';
 const cdkVersion = '2.85.0'; // Minimum CDK Version Required
-const minProjenVersion = '0.95.6'; // Does not affect consumers of the library
+const minProjenVersion = '0.98.10'; // Does not affect consumers of the library
 const minConstructsVersion = '10.0.5'; // Minimum version to support CDK v2 and does affect consumers of the library
 const devConstructsVersion = '10.0.5'; // Pin for local dev/build to avoid jsii type conflicts
 const project = new awscdk.AwsCdkConstructLibrary({

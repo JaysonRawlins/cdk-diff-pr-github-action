@@ -83,17 +83,17 @@
     },
     {
       "name": "jsii-rosetta",
-      "version": "~5.8.0",
+      "version": "^5.8.0",
       "type": "build"
     },
     {
       "name": "jsii",
-      "version": "~5.8.0",
+      "version": "^5.8.0",
       "type": "build"
     },
     {
       "name": "projen",
-      "version": "^0.95.6",
+      "version": "^0.98.10",
       "type": "build"
     },
     {
