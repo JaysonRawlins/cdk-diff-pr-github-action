@@ -90,6 +90,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   ],
   npmAccess: NpmAccess.PUBLIC,
   releaseToNpm: true,
+  npmTrustedPublishing: true, // Enable npm Trusted Publishing via OIDC - eliminates need for NPM_TOKEN
 });
 
 // Add Yarn resolutions to ensure patched transitive versions
@@ -150,6 +151,10 @@ project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release.perm
 project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.permissions.id-token', 'write');
 project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.permissions.packages', 'read');
 project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.permissions.contents', 'write');
+
+// Override node-version to 24 for npm trusted publishing (requires npm 11.5.1+)
+// This only affects the release_npm job, not the project's minNodeVersion
+project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release_npm.steps.0.with.node-version', '24');
 
 project.synth();
 
