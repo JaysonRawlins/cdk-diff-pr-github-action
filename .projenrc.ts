@@ -155,8 +155,8 @@ buildWorkflow.file!.addOverride('jobs.build.steps.0.with.ref', '${{ github.event
 // Override self-mutation job checkout (step index 1, after token generation)
 buildWorkflow.file!.addOverride('jobs.self-mutation.steps.1.with.ref', '${{ github.event.pull_request.head.sha }}');
 
-// Override package-js job checkout (step index 4)
-buildWorkflow.file!.addOverride('jobs.package-js.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+// Override package-js job checkout (step index 3)
+buildWorkflow.file!.addOverride('jobs.package-js.steps.3.with.ref', '${{ github.event.pull_request.head.sha }}');
 
 /** * For the release jobs, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
 */
