@@ -142,6 +142,22 @@ project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.step
 project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissions.id-token', 'write');
 project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissions.packages', 'read');
 
+/**
+ * Fix checkout to use SHA instead of branch ref (survives branch deletion after automerge).
+ * When automerge deletes the head branch before workflow jobs complete, using the branch ref fails.
+ * The commit SHA persists even after branch deletion.
+ */
+const buildWorkflow = project.github!.tryFindWorkflow('build')!;
+
+// Override main build job checkout (step index 0)
+buildWorkflow.file!.addOverride('jobs.build.steps.0.with.ref', '${{ github.event.pull_request.head.sha }}');
+
+// Override self-mutation job checkout (step index 1, after token generation)
+buildWorkflow.file!.addOverride('jobs.self-mutation.steps.1.with.ref', '${{ github.event.pull_request.head.sha }}');
+
+// Override package-js job checkout (step index 4)
+buildWorkflow.file!.addOverride('jobs.package-js.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+
 /** * For the release jobs, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
 */
 project.github!.tryFindWorkflow('release')!.file!.addOverride('jobs.release.permissions.id-token', 'write');
