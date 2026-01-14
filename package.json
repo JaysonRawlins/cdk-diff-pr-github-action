@@ -35,11 +35,11 @@
     "organization": false
   },
   "devDependencies": {
-    "@aws-sdk/types": "^3.965.0",
+    "@aws-sdk/types": "^3.968.0",
     "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.23",
-    "@types/node": "^24.10.7",
+    "@types/node": "^24.10.8",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "aws-cdk": "2.1029.2",
@@ -66,7 +66,7 @@
     "constructs": ">=10.0.5 <11.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.966.0",
+    "@aws-sdk/client-cloudformation": "^3.968.0",
     "@types/crypto-js": "^4.2.2",
     "@types/js-yaml": "^4.0.9",
     "crypto-js": "^4.2.0",
