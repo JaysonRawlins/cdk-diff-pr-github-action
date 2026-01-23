@@ -85,6 +85,7 @@
     "lodash.merge"
   ],
   "resolutions": {
+    "brace-expansion": "1.1.12",
     "form-data": "^4.0.4",
     "@eslint/plugin-kit": "^0.3.4",
     "aws-cdk-lib": ">=2.85.0 <3.0.0",

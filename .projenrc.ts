@@ -95,6 +95,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
 
 // Add Yarn resolutions to ensure patched transitive versions
 project.package.addField('resolutions', {
+  'brace-expansion': '1.1.12',
   'form-data': '^4.0.4',
   '@eslint/plugin-kit': '^0.3.4',
   'aws-cdk-lib': `>=${cdkVersion} <3.0.0`,
