@@ -2,7 +2,7 @@ import { awscdk, TextFile, DependencyType } from 'projen';
 import { GithubCredentials } from 'projen/lib/github';
 import { NpmAccess } from 'projen/lib/javascript';
 const cdkCliVersion = '2.1029.2';
-const minNodeVersion = '20.9.0';
+const minNodeVersion = '20.19.0';
 const jsiiVersion = '^5.8.0';
 const cdkVersion = '2.85.0'; // Minimum CDK Version Required
 const minProjenVersion = '0.98.10'; // Does not affect consumers of the library

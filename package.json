@@ -100,7 +100,7 @@
     "pull request"
   ],
   "engines": {
-    "node": ">= 20.9.0"
+    "node": ">= 20.19.0"
   },
   "main": "lib/index.js",
   "license": "Apache-2.0",
