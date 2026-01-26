@@ -75,6 +75,196 @@ public readonly outputPath: string;
 
 ---
 
+### CdkDiffIamTemplateStackSetProps <a name="CdkDiffIamTemplateStackSetProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps"></a>
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.Initializer"></a>
+
+```typescript
+import { CdkDiffIamTemplateStackSetProps } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const cdkDiffIamTemplateStackSetProps: CdkDiffIamTemplateStackSetProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.githubOidc">githubOidc</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig">GitHubOidcConfig</a></code> | GitHub OIDC configuration for repo/branch restrictions. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.project">project</a></code> | <code>any</code> | Projen project instance. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.autoDeployment">autoDeployment</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment">StackSetAutoDeployment</a></code> | Auto-deployment configuration. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.changesetRoleName">changesetRoleName</a></code> | <code>string</code> | Name of the CdkChangesetRole (default: 'CdkChangesetRole'). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.delegatedAdmin">delegatedAdmin</a></code> | <code>boolean</code> | Whether to use delegated admin mode for StackSet operations. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.description">description</a></code> | <code>string</code> | Description for the StackSet. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.driftRoleName">driftRoleName</a></code> | <code>string</code> | Name of the CdkDriftRole (default: 'CdkDriftRole'). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.oidcRoleName">oidcRoleName</a></code> | <code>string</code> | Name of the GitHub OIDC role (default: 'GitHubOIDCRole'). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.outputPath">outputPath</a></code> | <code>string</code> | Output path for the template file (default: 'cdk-diff-workflow-stackset-template.yaml'). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.regions">regions</a></code> | <code>string[]</code> | Target regions for deployment (e.g., ['us-east-1', 'eu-west-1']). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.roleSelection">roleSelection</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection">StackSetRoleSelection</a></code> | Which roles to include (default: BOTH). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.stackSetName">stackSetName</a></code> | <code>string</code> | Name of the StackSet (default: 'cdk-diff-workflow-iam-stackset'). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.targetOrganizationalUnitIds">targetOrganizationalUnitIds</a></code> | <code>string[]</code> | Target OUs for deployment (e.g., ['ou-xxxx-xxxxxxxx', 'r-xxxx']). |
+
+---
+
+##### `githubOidc`<sup>Required</sup> <a name="githubOidc" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.githubOidc"></a>
+
+```typescript
+public readonly githubOidc: GitHubOidcConfig;
+```
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig">GitHubOidcConfig</a>
+
+GitHub OIDC configuration for repo/branch restrictions.
+
+---
+
+##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.project"></a>
+
+```typescript
+public readonly project: any;
+```
+
+- *Type:* any
+
+Projen project instance.
+
+---
+
+##### `autoDeployment`<sup>Optional</sup> <a name="autoDeployment" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.autoDeployment"></a>
+
+```typescript
+public readonly autoDeployment: StackSetAutoDeployment;
+```
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment">StackSetAutoDeployment</a>
+
+Auto-deployment configuration.
+
+---
+
+##### `changesetRoleName`<sup>Optional</sup> <a name="changesetRoleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.changesetRoleName"></a>
+
+```typescript
+public readonly changesetRoleName: string;
+```
+
+- *Type:* string
+
+Name of the CdkChangesetRole (default: 'CdkChangesetRole').
+
+---
+
+##### `delegatedAdmin`<sup>Optional</sup> <a name="delegatedAdmin" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.delegatedAdmin"></a>
+
+```typescript
+public readonly delegatedAdmin: boolean;
+```
+
+- *Type:* boolean
+
+Whether to use delegated admin mode for StackSet operations.
+
+If true, adds --call-as DELEGATED_ADMIN to commands.
+If false, assumes running from the management account.
+Default: true
+
+---
+
+##### `description`<sup>Optional</sup> <a name="description" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.description"></a>
+
+```typescript
+public readonly description: string;
+```
+
+- *Type:* string
+
+Description for the StackSet.
+
+---
+
+##### `driftRoleName`<sup>Optional</sup> <a name="driftRoleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.driftRoleName"></a>
+
+```typescript
+public readonly driftRoleName: string;
+```
+
+- *Type:* string
+
+Name of the CdkDriftRole (default: 'CdkDriftRole').
+
+---
+
+##### `oidcRoleName`<sup>Optional</sup> <a name="oidcRoleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.oidcRoleName"></a>
+
+```typescript
+public readonly oidcRoleName: string;
+```
+
+- *Type:* string
+
+Name of the GitHub OIDC role (default: 'GitHubOIDCRole').
+
+---
+
+##### `outputPath`<sup>Optional</sup> <a name="outputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.outputPath"></a>
+
+```typescript
+public readonly outputPath: string;
+```
+
+- *Type:* string
+
+Output path for the template file (default: 'cdk-diff-workflow-stackset-template.yaml').
+
+---
+
+##### `regions`<sup>Optional</sup> <a name="regions" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.regions"></a>
+
+```typescript
+public readonly regions: string[];
+```
+
+- *Type:* string[]
+
+Target regions for deployment (e.g., ['us-east-1', 'eu-west-1']).
+
+---
+
+##### `roleSelection`<sup>Optional</sup> <a name="roleSelection" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.roleSelection"></a>
+
+```typescript
+public readonly roleSelection: StackSetRoleSelection;
+```
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection">StackSetRoleSelection</a>
+
+Which roles to include (default: BOTH).
+
+---
+
+##### `stackSetName`<sup>Optional</sup> <a name="stackSetName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.stackSetName"></a>
+
+```typescript
+public readonly stackSetName: string;
+```
+
+- *Type:* string
+
+Name of the StackSet (default: 'cdk-diff-workflow-iam-stackset').
+
+---
+
+##### `targetOrganizationalUnitIds`<sup>Optional</sup> <a name="targetOrganizationalUnitIds" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.targetOrganizationalUnitIds"></a>
+
+```typescript
+public readonly targetOrganizationalUnitIds: string[];
+```
+
+- *Type:* string[]
+
+Target OUs for deployment (e.g., ['ou-xxxx-xxxxxxxx', 'r-xxxx']).
+
+---
+
 ### CdkDiffStack <a name="CdkDiffStack" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack"></a>
 
 #### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack.Initializer"></a>
@@ -446,6 +636,77 @@ public readonly outputPath: string;
 
 ---
 
+### GitHubOidcConfig <a name="GitHubOidcConfig" id="@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig"></a>
+
+GitHub repository restrictions for OIDC authentication.
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.Initializer"></a>
+
+```typescript
+import { GitHubOidcConfig } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const gitHubOidcConfig: GitHubOidcConfig = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.owner">owner</a></code> | <code>string</code> | GitHub organization or username (e.g., 'my-org' or 'my-username'). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.repositories">repositories</a></code> | <code>string[]</code> | Repository names allowed to assume the role (e.g., ['repo1', 'repo2']) Use ['*'] to allow all repos in the organization. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.additionalClaims">additionalClaims</a></code> | <code>string[]</code> | Additional subject claims for fine-grained access e.g., ['pull_request', 'environment:production']. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.branches">branches</a></code> | <code>string[]</code> | Branch patterns allowed (e.g., ['main', 'release/*']) Default: ['*'] (all branches). |
+
+---
+
+##### `owner`<sup>Required</sup> <a name="owner" id="@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.owner"></a>
+
+```typescript
+public readonly owner: string;
+```
+
+- *Type:* string
+
+GitHub organization or username (e.g., 'my-org' or 'my-username').
+
+---
+
+##### `repositories`<sup>Required</sup> <a name="repositories" id="@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.repositories"></a>
+
+```typescript
+public readonly repositories: string[];
+```
+
+- *Type:* string[]
+
+Repository names allowed to assume the role (e.g., ['repo1', 'repo2']) Use ['*'] to allow all repos in the organization.
+
+---
+
+##### `additionalClaims`<sup>Optional</sup> <a name="additionalClaims" id="@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.additionalClaims"></a>
+
+```typescript
+public readonly additionalClaims: string[];
+```
+
+- *Type:* string[]
+
+Additional subject claims for fine-grained access e.g., ['pull_request', 'environment:production'].
+
+---
+
+##### `branches`<sup>Optional</sup> <a name="branches" id="@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig.property.branches"></a>
+
+```typescript
+public readonly branches: string[];
+```
+
+- *Type:* string[]
+
+Branch patterns allowed (e.g., ['main', 'release/*']) Default: ['*'] (all branches).
+
+---
+
 ### Stack <a name="Stack" id="@jjrawlins/cdk-diff-pr-github-action.Stack"></a>
 
 #### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.Stack.Initializer"></a>
@@ -507,6 +768,51 @@ public readonly failOnDrift: boolean;
 
 ---
 
+### StackSetAutoDeployment <a name="StackSetAutoDeployment" id="@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment"></a>
+
+Configuration for StackSet auto-deployment.
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment.Initializer"></a>
+
+```typescript
+import { StackSetAutoDeployment } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const stackSetAutoDeployment: StackSetAutoDeployment = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment.property.enabled">enabled</a></code> | <code>boolean</code> | Enable auto-deployment to new accounts in target OUs (default: true). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment.property.retainStacksOnAccountRemoval">retainStacksOnAccountRemoval</a></code> | <code>boolean</code> | Retain stacks when account leaves OU (default: false). |
+
+---
+
+##### `enabled`<sup>Optional</sup> <a name="enabled" id="@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment.property.enabled"></a>
+
+```typescript
+public readonly enabled: boolean;
+```
+
+- *Type:* boolean
+
+Enable auto-deployment to new accounts in target OUs (default: true).
+
+---
+
+##### `retainStacksOnAccountRemoval`<sup>Optional</sup> <a name="retainStacksOnAccountRemoval" id="@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment.property.retainStacksOnAccountRemoval"></a>
+
+```typescript
+public readonly retainStacksOnAccountRemoval: boolean;
+```
+
+- *Type:* boolean
+
+Retain stacks when account leaves OU (default: false).
+
+---
+
 ## Classes <a name="Classes" id="Classes"></a>
 
 ### CdkDiffIamTemplate <a name="CdkDiffIamTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplate"></a>
@@ -528,6 +834,36 @@ new CdkDiffIamTemplate(props: CdkDiffIamTemplateProps)
 ##### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplate.Initializer.parameter.props"></a>
 
 - *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps">CdkDiffIamTemplateProps</a>
+
+---
+
+
+
+
+
+### CdkDiffIamTemplateStackSet <a name="CdkDiffIamTemplateStackSet" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSet"></a>
+
+Creates a CloudFormation StackSet template for org-wide deployment of GitHub OIDC provider, OIDC role, and CDK Diff/Drift IAM roles.
+
+This provides a self-contained per-account deployment with no role chaining required.
+
+#### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSet.Initializer"></a>
+
+```typescript
+import { CdkDiffIamTemplateStackSet } from '@jjrawlins/cdk-diff-pr-github-action'
+
+new CdkDiffIamTemplateStackSet(props: CdkDiffIamTemplateStackSetProps)
+```
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSet.Initializer.parameter.props">props</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps">CdkDiffIamTemplateStackSetProps</a></code> | *No description.* |
+
+---
+
+##### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSet.Initializer.parameter.props"></a>
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps">CdkDiffIamTemplateStackSetProps</a>
 
 ---
 
@@ -613,4 +949,40 @@ new CdkDriftIamTemplate(props: CdkDriftIamTemplateProps)
 
 
 
+
+## Enums <a name="Enums" id="Enums"></a>
+
+### StackSetRoleSelection <a name="StackSetRoleSelection" id="@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection"></a>
+
+Which roles to include in the StackSet.
+
+#### Members <a name="Members" id="Members"></a>
+
+| **Name** | **Description** |
+| --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection.CHANGESET_ONLY">CHANGESET_ONLY</a></code> | Include only the changeset role (CdkChangesetRole). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection.DRIFT_ONLY">DRIFT_ONLY</a></code> | Include only the drift role (CdkDriftRole). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection.BOTH">BOTH</a></code> | Include both roles (default). |
+
+---
+
+##### `CHANGESET_ONLY` <a name="CHANGESET_ONLY" id="@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection.CHANGESET_ONLY"></a>
+
+Include only the changeset role (CdkChangesetRole).
+
+---
+
+
+##### `DRIFT_ONLY` <a name="DRIFT_ONLY" id="@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection.DRIFT_ONLY"></a>
+
+Include only the drift role (CdkDriftRole).
+
+---
+
+
+##### `BOTH` <a name="BOTH" id="@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection.BOTH"></a>
+
+Include both roles (default).
+
+---
 
