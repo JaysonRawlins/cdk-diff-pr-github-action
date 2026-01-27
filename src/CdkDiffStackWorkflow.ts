@@ -17,8 +17,8 @@ export interface CdkDiffStack {
 export interface CdkDiffStackWorkflowProps {
   readonly project: any; // avoid exporting projen types in public API
   readonly stacks: CdkDiffStack[];
-  readonly oidcRoleArn: string; // Required OIDC role ARN for all stacks (or each stack must have its own)
-  readonly oidcRegion: string; // Required OIDC region for all stacks (or each stack must have its own)
+  readonly oidcRoleArn?: string; // Default OIDC role ARN for all stacks (or each stack must have its own)
+  readonly oidcRegion?: string; // Default OIDC region for all stacks (or each stack must have its own)
   readonly nodeVersion?: string;
   readonly cdkYarnCommand?: string;
   readonly scriptOutputPath?: string;
@@ -77,8 +77,8 @@ export class CdkDiffStackWorkflow {
     cdkYarnCommand: string,
     nodeVersion: string,
     scriptOutputPath: string,
-    defaultOidcRoleArn: string,
-    defaultOidcRegion: string,
+    defaultOidcRoleArn?: string,
+    defaultOidcRegion?: string,
   ) {
     workflow.on({
       pullRequest: {

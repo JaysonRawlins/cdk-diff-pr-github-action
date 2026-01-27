@@ -14,6 +14,8 @@ export interface Stack {
   readonly driftDetectionRoleToAssumeRegion: string;
   readonly driftDetectionRoleToAssumeArn: string;
   readonly failOnDrift?: boolean; // if true, fail job when drift detected (default true)
+  readonly oidcRoleArn?: string; // Optional override for OIDC role
+  readonly oidcRegion?: string; // Optional override for OIDC region
 }
 
 export interface CdkDriftDetectionWorkflowProps {
@@ -22,8 +24,8 @@ export interface CdkDriftDetectionWorkflowProps {
   readonly workflowName?: string; // workflow workflowName (also used to derive file workflowName)
   readonly schedule?: string; // cron expression, e.g. '0 0 * * *'
   readonly createIssues?: boolean; // create/update issue when drift detected on schedule (default true)
-  readonly oidcRoleArn: string; // default OIDC role ARN to assume for all stacks
-  readonly oidcRegion: string; // default OIDC region to assume for all stacks
+  readonly oidcRoleArn?: string; // default OIDC role ARN to assume for all stacks (or each stack must have its own)
+  readonly oidcRegion?: string; // default OIDC region to assume for all stacks (or each stack must have its own)
   readonly stacks: Stack[];
   readonly nodeVersion?: string; // e.g., '24.x'
   /**
@@ -59,6 +61,9 @@ export class CdkDriftDetectionWorkflow {
   private static scriptCreated = false;
 
   constructor(props: CdkDriftDetectionWorkflowProps) {
+    // Validate OIDC configuration
+    this.validateOidcConfiguration(props);
+
     const name = props.workflowName ?? 'drift-detection';
     const fileName = toKebabCase(name) + '.yml';
     const nodeVersion = props.nodeVersion ?? '24.x';
@@ -141,9 +146,9 @@ export class CdkDriftDetectionWorkflow {
             id: 'creds',
             uses: `aws-actions/configure-aws-credentials@${githubActionsAwsCredentialsVersion}`,
             with: {
-              'role-to-assume': props.oidcRoleArn,
+              'role-to-assume': stack.oidcRoleArn ?? props.oidcRoleArn,
               'role-session-name': 'GitHubAction',
-              'aws-region': props.oidcRegion,
+              'aws-region': stack.oidcRegion ?? props.oidcRegion,
             },
           },
           {
@@ -228,6 +233,24 @@ export class CdkDriftDetectionWorkflow {
     };
 
     workflow.addJobs(jobs);
+  }
+
+  private validateOidcConfiguration(props: CdkDriftDetectionWorkflowProps): void {
+    const hasDefaultOidcRole = !!props.oidcRoleArn;
+    const hasDefaultOidcRegion = !!props.oidcRegion;
+
+    // Check if all stacks have their own OIDC configuration
+    const allStacksHaveOidcRole = props.stacks.every(stack => !!stack.oidcRoleArn);
+    const allStacksHaveOidcRegion = props.stacks.every(stack => !!stack.oidcRegion);
+
+    // Either defaults must be provided OR all stacks must have their own OIDC config
+    if (!hasDefaultOidcRole && !allStacksHaveOidcRole) {
+      throw new Error('Either provide default oidcRoleArn or specify oidcRoleArn for each stack');
+    }
+
+    if (!hasDefaultOidcRegion && !allStacksHaveOidcRegion) {
+      throw new Error('Either provide default oidcRegion or specify oidcRegion for each stack');
+    }
   }
 }
 
