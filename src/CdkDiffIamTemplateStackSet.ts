@@ -50,12 +50,15 @@ export interface GitHubOidcConfig {
   readonly additionalClaims?: string[];
 }
 
-export interface CdkDiffIamTemplateStackSetProps {
-  /** Projen project instance */
-  readonly project: any;
+/**
+ * Props for generating StackSet templates (no Projen dependency)
+ */
+export interface CdkDiffIamTemplateStackSetGeneratorProps {
+  /** GitHub OIDC configuration for repo/branch restrictions */
+  readonly githubOidc: GitHubOidcConfig;
 
-  /** Name of the StackSet (default: 'cdk-diff-workflow-iam-stackset') */
-  readonly stackSetName?: string;
+  /** Name of the GitHub OIDC role (default: 'GitHubOIDCRole') */
+  readonly oidcRoleName?: string;
 
   /** Name of the CdkChangesetRole (default: 'CdkChangesetRole') */
   readonly changesetRoleName?: string;
@@ -63,17 +66,22 @@ export interface CdkDiffIamTemplateStackSetProps {
   /** Name of the CdkDriftRole (default: 'CdkDriftRole') */
   readonly driftRoleName?: string;
 
-  /** Output path for the template file (default: 'cdk-diff-workflow-stackset-template.yaml') */
-  readonly outputPath?: string;
-
-  /** GitHub OIDC configuration for repo/branch restrictions */
-  readonly githubOidc: GitHubOidcConfig;
-
-  /** Name of the GitHub OIDC role (default: 'GitHubOIDCRole') */
-  readonly oidcRoleName?: string;
-
   /** Which roles to include (default: BOTH) */
   readonly roleSelection?: StackSetRoleSelection;
+
+  /** Description for the StackSet */
+  readonly description?: string;
+}
+
+/**
+ * Props for generating StackSet CLI commands (no Projen dependency)
+ */
+export interface CdkDiffIamTemplateStackSetCommandsProps {
+  /** Name of the StackSet (default: 'cdk-diff-workflow-iam-stackset') */
+  readonly stackSetName?: string;
+
+  /** Path to the template file (default: 'cdk-diff-workflow-stackset-template.yaml') */
+  readonly templatePath?: string;
 
   /** Target OUs for deployment (e.g., ['ou-xxxx-xxxxxxxx', 'r-xxxx']) */
   readonly targetOrganizationalUnitIds?: string[];
@@ -84,41 +92,29 @@ export interface CdkDiffIamTemplateStackSetProps {
   /** Auto-deployment configuration */
   readonly autoDeployment?: StackSetAutoDeployment;
 
-  /** Description for the StackSet */
-  readonly description?: string;
-
   /**
    * Whether to use delegated admin mode for StackSet operations.
    * If true, adds --call-as DELEGATED_ADMIN to commands.
-   * If false, assumes running from the management account.
    * Default: true
    */
   readonly delegatedAdmin?: boolean;
 }
 
 /**
- * Creates a CloudFormation StackSet template for org-wide deployment of
- * GitHub OIDC provider, OIDC role, and CDK Diff/Drift IAM roles.
- *
- * This provides a self-contained per-account deployment with no role chaining required.
+ * Pure generator class for StackSet templates and commands.
+ * No Projen dependency - can be used in any project.
  */
-export class CdkDiffIamTemplateStackSet {
-  constructor(props: CdkDiffIamTemplateStackSetProps) {
-    const stackSetName = props.stackSetName ?? 'cdk-diff-workflow-iam-stackset';
-    const outputPath = props.outputPath ?? 'cdk-diff-workflow-stackset-template.yaml';
+export class CdkDiffIamTemplateStackSetGenerator {
+  /**
+   * Generate the CloudFormation StackSet template as a YAML string.
+   */
+  static generateTemplate(props: CdkDiffIamTemplateStackSetGeneratorProps): string {
+    const oidcRoleName = props.oidcRoleName ?? 'GitHubOIDCRole';
     const changesetRoleName = props.changesetRoleName ?? 'CdkChangesetRole';
     const driftRoleName = props.driftRoleName ?? 'CdkDriftRole';
-    const oidcRoleName = props.oidcRoleName ?? 'GitHubOIDCRole';
     const roleSelection = props.roleSelection ?? StackSetRoleSelection.BOTH;
-    const regions = props.regions ?? ['us-east-1'];
-    const targetOUs = props.targetOrganizationalUnitIds ?? [];
-    const autoDeployEnabled = props.autoDeployment?.enabled ?? true;
-    const retainStacks = props.autoDeployment?.retainStacksOnAccountRemoval ?? false;
-    const delegatedAdmin = props.delegatedAdmin ?? true;
-    const callAs = delegatedAdmin ? ' --call-as DELEGATED_ADMIN' : '';
 
-    // Generate CloudFormation template
-    const templateLines = this.generateTemplateLines(
+    const lines = this.generateTemplateLines(
       props.githubOidc,
       oidcRoleName,
       changesetRoleName,
@@ -127,19 +123,38 @@ export class CdkDiffIamTemplateStackSet {
       props.description,
     );
 
-    new TextFile(props.project, outputPath, { lines: templateLines });
-
-    // Add Projen tasks
-    this.addCreateStackSetTask(props.project, stackSetName, outputPath, autoDeployEnabled, retainStacks, callAs);
-    this.addUpdateStackSetTask(props.project, stackSetName, outputPath, callAs);
-    this.addDeployInstancesTask(props.project, stackSetName, targetOUs, regions, callAs);
-    this.addDeleteInstancesTask(props.project, stackSetName, targetOUs, regions, callAs);
-    this.addDeleteStackSetTask(props.project, stackSetName, callAs);
-    this.addDescribeStackSetTask(props.project, stackSetName, callAs);
-    this.addListInstancesTask(props.project, stackSetName, callAs);
+    return lines.join('\n');
   }
 
-  private generateTemplateLines(
+  /**
+   * Generate AWS CLI commands for StackSet operations.
+   * Returns a map of command names to shell commands.
+   */
+  static generateCommands(props: CdkDiffIamTemplateStackSetCommandsProps = {}): Record<string, string> {
+    const stackSetName = props.stackSetName ?? 'cdk-diff-workflow-iam-stackset';
+    const templatePath = props.templatePath ?? 'cdk-diff-workflow-stackset-template.yaml';
+    const regions = props.regions ?? ['us-east-1'];
+    const targetOUs = props.targetOrganizationalUnitIds ?? [];
+    const autoDeployEnabled = props.autoDeployment?.enabled ?? true;
+    const retainStacks = props.autoDeployment?.retainStacksOnAccountRemoval ?? false;
+    const delegatedAdmin = props.delegatedAdmin ?? true;
+    const callAs = delegatedAdmin ? ' --call-as DELEGATED_ADMIN' : '';
+
+    const ouList = targetOUs.length > 0 ? targetOUs.join(',') : '<OU_IDS>';
+    const regionList = regions.join(' ');
+
+    return {
+      'stackset-create': `aws cloudformation create-stack-set --stack-set-name ${stackSetName} --template-body file://${templatePath} --capabilities CAPABILITY_NAMED_IAM --permission-model SERVICE_MANAGED --auto-deployment Enabled=${autoDeployEnabled},RetainStacksOnAccountRemoval=${retainStacks}${callAs}`,
+      'stackset-update': `aws cloudformation update-stack-set --stack-set-name ${stackSetName} --template-body file://${templatePath} --capabilities CAPABILITY_NAMED_IAM${callAs}`,
+      'stackset-deploy-instances': `aws cloudformation create-stack-instances --stack-set-name ${stackSetName} --deployment-targets OrganizationalUnitIds=${ouList} --regions ${regionList}${callAs}`,
+      'stackset-delete-instances': `aws cloudformation delete-stack-instances --stack-set-name ${stackSetName} --deployment-targets OrganizationalUnitIds=${ouList} --regions ${regionList} --no-retain-stacks${callAs}`,
+      'stackset-delete': `aws cloudformation delete-stack-set --stack-set-name ${stackSetName}${callAs}`,
+      'stackset-describe': `aws cloudformation describe-stack-set --stack-set-name ${stackSetName}${callAs}`,
+      'stackset-list-instances': `aws cloudformation list-stack-instances --stack-set-name ${stackSetName}${callAs}`,
+    };
+  }
+
+  private static generateTemplateLines(
     githubOidc: GitHubOidcConfig,
     oidcRoleName: string,
     changesetRoleName: string,
@@ -194,7 +209,7 @@ export class CdkDiffIamTemplateStackSet {
     return lines;
   }
 
-  private generateOidcProviderLines(): string[] {
+  private static generateOidcProviderLines(): string[] {
     return [
       '  # GitHub OIDC Provider',
       '  GitHubOIDCProvider:',
@@ -210,7 +225,7 @@ export class CdkDiffIamTemplateStackSet {
     ];
   }
 
-  private generateOidcRoleLines(roleName: string, githubOidc: GitHubOidcConfig): string[] {
+  private static generateOidcRoleLines(roleName: string, githubOidc: GitHubOidcConfig): string[] {
     const subjectClaims = this.buildSubjectClaims(githubOidc);
 
     const lines = [
@@ -243,7 +258,7 @@ export class CdkDiffIamTemplateStackSet {
     return lines;
   }
 
-  private buildSubjectClaims(githubOidc: GitHubOidcConfig): string[] {
+  private static buildSubjectClaims(githubOidc: GitHubOidcConfig): string[] {
     const claims: string[] = [];
     const branches = githubOidc.branches ?? ['*'];
 
@@ -285,7 +300,7 @@ export class CdkDiffIamTemplateStackSet {
     return claims;
   }
 
-  private generateChangesetRoleLines(roleName: string): string[] {
+  private static generateChangesetRoleLines(roleName: string): string[] {
     return [
       '  # CloudFormation ChangeSet Role - minimal permissions for changeset operations',
       '  CdkChangesetRole:',
@@ -343,7 +358,7 @@ export class CdkDiffIamTemplateStackSet {
     ];
   }
 
-  private generateDriftRoleLines(roleName: string): string[] {
+  private static generateDriftRoleLines(roleName: string): string[] {
     return [
       '  # CloudFormation Drift Detection Role - minimal permissions for drift detection operations',
       '  CdkDriftRole:',
@@ -377,7 +392,7 @@ export class CdkDiffIamTemplateStackSet {
     ];
   }
 
-  private generateOidcOutputLines(): string[] {
+  private static generateOidcOutputLines(): string[] {
     return [
       '  GitHubOIDCProviderArn:',
       "    Description: 'ARN of the GitHub OIDC provider'",
@@ -400,7 +415,7 @@ export class CdkDiffIamTemplateStackSet {
     ];
   }
 
-  private generateChangesetOutputLines(): string[] {
+  private static generateChangesetOutputLines(): string[] {
     return [
       '  CdkChangesetRoleArn:',
       "    Description: 'ARN of the CDK changeset role'",
@@ -417,7 +432,7 @@ export class CdkDiffIamTemplateStackSet {
     ];
   }
 
-  private generateDriftOutputLines(): string[] {
+  private static generateDriftOutputLines(): string[] {
     return [
       '  CdkDriftRoleArn:',
       "    Description: 'ARN of the CDK drift detection role'",
@@ -432,81 +447,83 @@ export class CdkDiffIamTemplateStackSet {
       "      Name: !Sub '${AWS::StackName}-CdkDriftRoleName'",
     ];
   }
+}
 
-  private addCreateStackSetTask(
-    project: any,
-    stackSetName: string,
-    outputPath: string,
-    autoDeployEnabled: boolean,
-    retainStacks: boolean,
-    callAs: string,
-  ): void {
-    project.addTask('stackset-create', {
-      description: 'Create the StackSet for org-wide IAM role deployment',
-      receiveArgs: true,
-      exec: `aws cloudformation create-stack-set --stack-set-name ${stackSetName} --template-body file://${outputPath} --capabilities CAPABILITY_NAMED_IAM --permission-model SERVICE_MANAGED --auto-deployment Enabled=${autoDeployEnabled},RetainStacksOnAccountRemoval=${retainStacks}${callAs}`,
+/**
+ * Props for the Projen-integrated StackSet construct
+ */
+export interface CdkDiffIamTemplateStackSetProps extends CdkDiffIamTemplateStackSetGeneratorProps {
+  /** Projen project instance */
+  readonly project: any;
+
+  /** Name of the StackSet (default: 'cdk-diff-workflow-iam-stackset') */
+  readonly stackSetName?: string;
+
+  /** Output path for the template file (default: 'cdk-diff-workflow-stackset-template.yaml') */
+  readonly outputPath?: string;
+
+  /** Target OUs for deployment (e.g., ['ou-xxxx-xxxxxxxx', 'r-xxxx']) */
+  readonly targetOrganizationalUnitIds?: string[];
+
+  /** Target regions for deployment (e.g., ['us-east-1', 'eu-west-1']) */
+  readonly regions?: string[];
+
+  /** Auto-deployment configuration */
+  readonly autoDeployment?: StackSetAutoDeployment;
+
+  /**
+   * Whether to use delegated admin mode for StackSet operations.
+   * If true, adds --call-as DELEGATED_ADMIN to commands.
+   * If false, assumes running from the management account.
+   * Default: true
+   */
+  readonly delegatedAdmin?: boolean;
+}
+
+/**
+ * Projen construct that creates a CloudFormation StackSet template for org-wide deployment of
+ * GitHub OIDC provider, OIDC role, and CDK Diff/Drift IAM roles.
+ *
+ * This provides a self-contained per-account deployment with no role chaining required.
+ *
+ * For non-Projen projects, use `CdkDiffIamTemplateStackSetGenerator` directly.
+ */
+export class CdkDiffIamTemplateStackSet {
+  constructor(props: CdkDiffIamTemplateStackSetProps) {
+    const outputPath = props.outputPath ?? 'cdk-diff-workflow-stackset-template.yaml';
+    const stackSetName = props.stackSetName ?? 'cdk-diff-workflow-iam-stackset';
+
+    // Generate template using the generator
+    const template = CdkDiffIamTemplateStackSetGenerator.generateTemplate(props);
+    new TextFile(props.project, outputPath, { lines: template.split('\n') });
+
+    // Generate commands and add as Projen tasks
+    const commands = CdkDiffIamTemplateStackSetGenerator.generateCommands({
+      stackSetName,
+      templatePath: outputPath,
+      targetOrganizationalUnitIds: props.targetOrganizationalUnitIds,
+      regions: props.regions,
+      autoDeployment: props.autoDeployment,
+      delegatedAdmin: props.delegatedAdmin,
     });
-  }
 
-  private addUpdateStackSetTask(project: any, stackSetName: string, outputPath: string, callAs: string): void {
-    project.addTask('stackset-update', {
-      description: 'Update the StackSet template',
-      receiveArgs: true,
-      exec: `aws cloudformation update-stack-set --stack-set-name ${stackSetName} --template-body file://${outputPath} --capabilities CAPABILITY_NAMED_IAM${callAs}`,
-    });
-  }
-
-  private addDeployInstancesTask(
-    project: any,
-    stackSetName: string,
-    targetOUs: string[],
-    regions: string[],
-    callAs: string,
-  ): void {
-    const ouList = targetOUs.length > 0 ? targetOUs.join(',') : '<OU_IDS>';
-    const regionList = regions.join(' ');
-    project.addTask('stackset-deploy-instances', {
-      description:
+    const taskDescriptions: Record<string, string> = {
+      'stackset-create': 'Create the StackSet for org-wide IAM role deployment',
+      'stackset-update': 'Update the StackSet template',
+      'stackset-deploy-instances':
         'Deploy stack instances to target OUs and regions (pass --deployment-targets OrganizationalUnitIds=<ou-ids> to override)',
-      receiveArgs: true,
-      exec: `aws cloudformation create-stack-instances --stack-set-name ${stackSetName} --deployment-targets OrganizationalUnitIds=${ouList} --regions ${regionList}${callAs}`,
-    });
-  }
+      'stackset-delete-instances': 'Delete stack instances from target OUs and regions',
+      'stackset-delete': 'Delete the StackSet (requires all instances to be deleted first)',
+      'stackset-describe': 'Describe the StackSet status and configuration',
+      'stackset-list-instances': 'List all stack instances and their statuses',
+    };
 
-  private addDeleteInstancesTask(
-    project: any,
-    stackSetName: string,
-    targetOUs: string[],
-    regions: string[],
-    callAs: string,
-  ): void {
-    const ouList = targetOUs.length > 0 ? targetOUs.join(',') : '<OU_IDS>';
-    const regionList = regions.join(' ');
-    project.addTask('stackset-delete-instances', {
-      description: 'Delete stack instances from target OUs and regions',
-      receiveArgs: true,
-      exec: `aws cloudformation delete-stack-instances --stack-set-name ${stackSetName} --deployment-targets OrganizationalUnitIds=${ouList} --regions ${regionList} --no-retain-stacks${callAs}`,
-    });
-  }
-
-  private addDeleteStackSetTask(project: any, stackSetName: string, callAs: string): void {
-    project.addTask('stackset-delete', {
-      description: 'Delete the StackSet (requires all instances to be deleted first)',
-      exec: `aws cloudformation delete-stack-set --stack-set-name ${stackSetName}${callAs}`,
-    });
-  }
-
-  private addDescribeStackSetTask(project: any, stackSetName: string, callAs: string): void {
-    project.addTask('stackset-describe', {
-      description: 'Describe the StackSet status and configuration',
-      exec: `aws cloudformation describe-stack-set --stack-set-name ${stackSetName}${callAs}`,
-    });
-  }
-
-  private addListInstancesTask(project: any, stackSetName: string, callAs: string): void {
-    project.addTask('stackset-list-instances', {
-      description: 'List all stack instances and their statuses',
-      exec: `aws cloudformation list-stack-instances --stack-set-name ${stackSetName}${callAs}`,
-    });
+    for (const [taskName, command] of Object.entries(commands)) {
+      props.project.addTask(taskName, {
+        description: taskDescriptions[taskName],
+        receiveArgs: taskName !== 'stackset-delete',
+        exec: command,
+      });
+    }
   }
 }

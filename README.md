@@ -1,17 +1,22 @@
 # cdk-diff-pr-github-action
 
-A small Projen-based helper library that wires GitHub workflows for:
+A library that provides GitHub workflows and IAM templates for:
 - Creating CloudFormation Change Sets for your CDK stacks on pull requests and commenting a formatted diff back on the PR.
 - Detecting CloudFormation drift on a schedule or manual trigger and producing a consolidated summary (optionally creating an issue).
+- Deploying IAM roles across AWS Organizations using StackSets.
 
 It also provides ready‑to‑deploy IAM templates with the minimal permissions required for each workflow.
 
-This package exposes four constructs:
+**Works with or without Projen** — The StackSet generator can be used standalone in any Node.js project.
+
+This package exposes five constructs:
 
 - `CdkDiffStackWorkflow` — Generates one GitHub Actions workflow per stack to create a change set and render the diff back to the PR and Step Summary.
 - `CdkDiffIamTemplate` — Emits a CloudFormation template file with minimal permissions for the Change Set workflow.
 - `CdkDriftDetectionWorkflow` — Generates a GitHub Actions workflow to detect CloudFormation drift per stack, upload machine‑readable results, and aggregate a summary.
 - `CdkDriftIamTemplate` — Emits a CloudFormation template file with minimal permissions for the Drift Detection workflow.
+- `CdkDiffIamTemplateStackSet` — Creates a CloudFormation StackSet template for org-wide deployment of GitHub OIDC and IAM roles (Projen integration).
+- `CdkDiffIamTemplateStackSetGenerator` — Pure generator class for StackSet templates (no Projen dependency).
 
 ## Quick start
 
@@ -308,6 +313,137 @@ A Projen task is also added:
 ```bash
 npx projen deploy-cdkdrift-iam-template -- --parameter-overrides GitHubOIDCRoleArn=... # plus any extra AWS CLI args
 ```
+
+---
+
+## Usage: CdkDiffIamTemplateStackSet (Org-Wide Deployment)
+
+`CdkDiffIamTemplateStackSet` creates a CloudFormation StackSet template for deploying GitHub OIDC provider, OIDC role, and CDK diff/drift IAM roles across an entire AWS Organization. This is the recommended approach for organizations that want to enable CDK diff/drift workflows across multiple accounts.
+
+### Architecture
+
+Each account in your organization gets:
+- **GitHub OIDC Provider** — Authenticates GitHub Actions workflows
+- **GitHubOIDCRole** — Trusts the OIDC provider with repo/branch restrictions
+- **CdkChangesetRole** — For PR change set previews (trusts GitHubOIDCRole)
+- **CdkDriftRole** — For drift detection (trusts GitHubOIDCRole)
+
+This is a self-contained deployment with **no role chaining required**.
+
+### With Projen
+
+```ts
+import { awscdk } from 'projen';
+import { CdkDiffIamTemplateStackSet } from '@jjrawlins/cdk-diff-pr-github-action';
+
+const project = new awscdk.AwsCdkConstructLibrary({ /* ... */ });
+
+new CdkDiffIamTemplateStackSet({
+  project,
+  githubOidc: {
+    owner: 'my-org',                          // GitHub org or username
+    repositories: ['infra-repo', 'app-repo'], // Repos allowed to assume roles
+    branches: ['main', 'release/*'],          // Branch patterns (default: ['*'])
+  },
+  targetOrganizationalUnitIds: ['ou-xxxx-xxxxxxxx'], // Target OUs
+  regions: ['us-east-1', 'eu-west-1'],               // Target regions
+  // Optional settings:
+  // oidcRoleName: 'GitHubOIDCRole',       // default
+  // changesetRoleName: 'CdkChangesetRole', // default
+  // driftRoleName: 'CdkDriftRole',         // default
+  // roleSelection: StackSetRoleSelection.BOTH, // BOTH, CHANGESET_ONLY, or DRIFT_ONLY
+  // delegatedAdmin: true,                  // Use --call-as DELEGATED_ADMIN (default: true)
+});
+
+project.synth();
+```
+
+This creates:
+- `cdk-diff-workflow-stackset-template.yaml` — CloudFormation template
+- Projen tasks for StackSet management
+
+**Projen tasks:**
+```bash
+npx projen stackset-create          # Create the StackSet
+npx projen stackset-update          # Update the StackSet template
+npx projen stackset-deploy-instances # Deploy to target OUs/regions
+npx projen stackset-delete-instances # Remove stack instances
+npx projen stackset-delete          # Delete the StackSet
+npx projen stackset-describe        # Show StackSet status
+npx projen stackset-list-instances  # List all instances
+```
+
+### Without Projen (Standalone Generator)
+
+For non-Projen projects, use `CdkDiffIamTemplateStackSetGenerator` directly:
+
+```ts
+import {
+  CdkDiffIamTemplateStackSetGenerator
+} from '@jjrawlins/cdk-diff-pr-github-action';
+import * as fs from 'fs';
+
+// Generate the CloudFormation template
+const template = CdkDiffIamTemplateStackSetGenerator.generateTemplate({
+  githubOidc: {
+    owner: 'my-org',
+    repositories: ['infra-repo'],
+    branches: ['main'],
+  },
+});
+
+// Write to file
+fs.writeFileSync('stackset-template.yaml', template);
+
+// Get AWS CLI commands for StackSet operations
+const commands = CdkDiffIamTemplateStackSetGenerator.generateCommands({
+  stackSetName: 'cdk-diff-workflow-iam-stackset',
+  templatePath: 'stackset-template.yaml',
+  targetOrganizationalUnitIds: ['ou-xxxx-xxxxxxxx'],
+  regions: ['us-east-1'],
+});
+
+console.log('Create StackSet:', commands['stackset-create']);
+console.log('Deploy instances:', commands['stackset-deploy-instances']);
+```
+
+### GitHub Actions Workflow (Simplified)
+
+With per-account OIDC, your workflow is simplified — no role chaining needed:
+
+```yaml
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/GitHubOIDCRole
+          aws-region: us-east-1
+
+      - name: Assume Changeset Role
+        run: |
+          CREDS=$(aws sts assume-role \
+            --role-arn arn:aws:iam::${{ env.ACCOUNT_ID }}:role/CdkChangesetRole \
+            --role-session-name changeset-session)
+          # Export credentials...
+```
+
+### GitHubOidcConfig options
+
+| Property | Description |
+|----------|-------------|
+| `owner` | GitHub organization or username (required) |
+| `repositories` | Array of repo names, or `['*']` for all repos (required) |
+| `branches` | Array of branch patterns (default: `['*']`) |
+| `additionalClaims` | Extra OIDC claims like `['pull_request', 'environment:production']` |
+
+---
 
 ## Testing
 

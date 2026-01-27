@@ -1,6 +1,76 @@
 import { awscdk } from 'projen';
 import { synthSnapshot } from 'projen/lib/util/synth';
-import { CdkDiffIamTemplateStackSet, StackSetRoleSelection } from '../src/CdkDiffIamTemplateStackSet';
+import {
+  CdkDiffIamTemplateStackSet,
+  CdkDiffIamTemplateStackSetGenerator,
+  StackSetRoleSelection,
+} from '../src/CdkDiffIamTemplateStackSet';
+
+describe('CdkDiffIamTemplateStackSetGenerator', () => {
+  test('generateTemplate returns valid YAML string with all resources', () => {
+    const template = CdkDiffIamTemplateStackSetGenerator.generateTemplate({
+      githubOidc: {
+        owner: 'my-org',
+        repositories: ['my-repo'],
+        branches: ['main'],
+      },
+    });
+
+    expect(typeof template).toBe('string');
+    expect(template).toContain("AWSTemplateFormatVersion: '2010-09-09'");
+    expect(template).toContain('GitHubOIDCProvider:');
+    expect(template).toContain('GitHubOIDCRole:');
+    expect(template).toContain('CdkChangesetRole:');
+    expect(template).toContain('CdkDriftRole:');
+    expect(template).toContain("'repo:my-org/my-repo:ref:refs/heads/main'");
+  });
+
+  test('generateTemplate respects roleSelection', () => {
+    const changesetOnly = CdkDiffIamTemplateStackSetGenerator.generateTemplate({
+      githubOidc: { owner: 'org', repositories: ['repo'] },
+      roleSelection: StackSetRoleSelection.CHANGESET_ONLY,
+    });
+
+    expect(changesetOnly).toContain('CdkChangesetRole:');
+    expect(changesetOnly).not.toContain('CdkDriftRole:');
+
+    const driftOnly = CdkDiffIamTemplateStackSetGenerator.generateTemplate({
+      githubOidc: { owner: 'org', repositories: ['repo'] },
+      roleSelection: StackSetRoleSelection.DRIFT_ONLY,
+    });
+
+    expect(driftOnly).not.toContain('CdkChangesetRole:');
+    expect(driftOnly).toContain('CdkDriftRole:');
+  });
+
+  test('generateCommands returns all expected commands', () => {
+    const commands = CdkDiffIamTemplateStackSetGenerator.generateCommands();
+
+    expect(commands['stackset-create']).toBeDefined();
+    expect(commands['stackset-update']).toBeDefined();
+    expect(commands['stackset-deploy-instances']).toBeDefined();
+    expect(commands['stackset-delete-instances']).toBeDefined();
+    expect(commands['stackset-delete']).toBeDefined();
+    expect(commands['stackset-describe']).toBeDefined();
+    expect(commands['stackset-list-instances']).toBeDefined();
+  });
+
+  test('generateCommands respects custom options', () => {
+    const commands = CdkDiffIamTemplateStackSetGenerator.generateCommands({
+      stackSetName: 'custom-stackset',
+      templatePath: 'custom-template.yaml',
+      targetOrganizationalUnitIds: ['ou-1234', 'ou-5678'],
+      regions: ['us-west-2', 'eu-central-1'],
+      delegatedAdmin: false,
+    });
+
+    expect(commands['stackset-create']).toContain('custom-stackset');
+    expect(commands['stackset-create']).toContain('custom-template.yaml');
+    expect(commands['stackset-create']).not.toContain('--call-as DELEGATED_ADMIN');
+    expect(commands['stackset-deploy-instances']).toContain('ou-1234,ou-5678');
+    expect(commands['stackset-deploy-instances']).toContain('us-west-2 eu-central-1');
+  });
+});
 
 describe('CdkDiffIamTemplateStackSet', () => {
   test('emits StackSet template with OIDC provider, OIDC role, and both workflow roles by default', () => {
