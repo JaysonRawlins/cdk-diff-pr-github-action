@@ -3,7 +3,67 @@
 
 ## Structs <a name="Structs" id="Structs"></a>
 
+### CdkDiffIamTemplateGeneratorProps <a name="CdkDiffIamTemplateGeneratorProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps"></a>
+
+Props for generating CDK Diff IAM templates (no Projen dependency).
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.Initializer"></a>
+
+```typescript
+import { CdkDiffIamTemplateGeneratorProps } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const cdkDiffIamTemplateGeneratorProps: CdkDiffIamTemplateGeneratorProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | Region for the OIDC trust condition. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | ARN of the existing GitHub OIDC role that can assume this changeset role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the IAM role. |
+
+---
+
+##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+Region for the OIDC trust condition.
+
+---
+
+##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+ARN of the existing GitHub OIDC role that can assume this changeset role.
+
+---
+
+##### `roleName`<sup>Required</sup> <a name="roleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.roleName"></a>
+
+```typescript
+public readonly roleName: string;
+```
+
+- *Type:* string
+
+Name for the IAM role.
+
+---
+
 ### CdkDiffIamTemplateProps <a name="CdkDiffIamTemplateProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps"></a>
+
+Props for the Projen-integrated CDK Diff IAM template construct.
 
 #### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.Initializer"></a>
 
@@ -17,11 +77,11 @@ const cdkDiffIamTemplateProps: CdkDiffIamTemplateProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.project">project</a></code> | <code>any</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | Region for the OIDC trust condition. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | ARN of the existing GitHub OIDC role that can assume this changeset role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the IAM role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.project">project</a></code> | <code>any</code> | Projen project instance. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | Output path for the template file (default: 'cdk-diff-workflow-iam-template.yaml'). |
 
 ---
 
@@ -33,6 +93,8 @@ public readonly oidcRegion: string;
 
 - *Type:* string
 
+Region for the OIDC trust condition.
+
 ---
 
 ##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn"></a>
@@ -43,15 +105,7 @@ public readonly oidcRoleArn: string;
 
 - *Type:* string
 
----
-
-##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.project"></a>
-
-```typescript
-public readonly project: any;
-```
-
-- *Type:* any
+ARN of the existing GitHub OIDC role that can assume this changeset role.
 
 ---
 
@@ -63,6 +117,20 @@ public readonly roleName: string;
 
 - *Type:* string
 
+Name for the IAM role.
+
+---
+
+##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.project"></a>
+
+```typescript
+public readonly project: any;
+```
+
+- *Type:* any
+
+Projen project instance.
+
 ---
 
 ##### `outputPath`<sup>Optional</sup> <a name="outputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath"></a>
@@ -72,6 +140,8 @@ public readonly outputPath: string;
 ```
 
 - *Type:* string
+
+Output path for the template file (default: 'cdk-diff-workflow-iam-template.yaml').
 
 ---
 
@@ -763,7 +833,67 @@ public readonly workflowName: string;
 
 ---
 
+### CdkDriftIamTemplateGeneratorProps <a name="CdkDriftIamTemplateGeneratorProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps"></a>
+
+Props for generating CDK Drift IAM templates (no Projen dependency).
+
+#### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.Initializer"></a>
+
+```typescript
+import { CdkDriftIamTemplateGeneratorProps } from '@jjrawlins/cdk-diff-pr-github-action'
+
+const cdkDriftIamTemplateGeneratorProps: CdkDriftIamTemplateGeneratorProps = { ... }
+```
+
+#### Properties <a name="Properties" id="Properties"></a>
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | Region for the OIDC trust condition. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | ARN of the existing GitHub OIDC role that can assume this drift role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the IAM role. |
+
+---
+
+##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+Region for the OIDC trust condition.
+
+---
+
+##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+ARN of the existing GitHub OIDC role that can assume this drift role.
+
+---
+
+##### `roleName`<sup>Required</sup> <a name="roleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps.property.roleName"></a>
+
+```typescript
+public readonly roleName: string;
+```
+
+- *Type:* string
+
+Name for the IAM role.
+
+---
+
 ### CdkDriftIamTemplateProps <a name="CdkDriftIamTemplateProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps"></a>
+
+Props for the Projen-integrated CDK Drift IAM template construct.
 
 #### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.Initializer"></a>
 
@@ -777,11 +907,11 @@ const cdkDriftIamTemplateProps: CdkDriftIamTemplateProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.project">project</a></code> | <code>any</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | Region for the OIDC trust condition. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | ARN of the existing GitHub OIDC role that can assume this drift role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the IAM role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.project">project</a></code> | <code>any</code> | Projen project instance. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | Output path for the template file (default: 'cdk-drift-workflow-iam-template.yaml'). |
 
 ---
 
@@ -793,6 +923,8 @@ public readonly oidcRegion: string;
 
 - *Type:* string
 
+Region for the OIDC trust condition.
+
 ---
 
 ##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.oidcRoleArn"></a>
@@ -803,15 +935,7 @@ public readonly oidcRoleArn: string;
 
 - *Type:* string
 
----
-
-##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.project"></a>
-
-```typescript
-public readonly project: any;
-```
-
-- *Type:* any
+ARN of the existing GitHub OIDC role that can assume this drift role.
 
 ---
 
@@ -823,6 +947,20 @@ public readonly roleName: string;
 
 - *Type:* string
 
+Name for the IAM role.
+
+---
+
+##### `project`<sup>Required</sup> <a name="project" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.project"></a>
+
+```typescript
+public readonly project: any;
+```
+
+- *Type:* any
+
+Projen project instance.
+
 ---
 
 ##### `outputPath`<sup>Optional</sup> <a name="outputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateProps.property.outputPath"></a>
@@ -832,6 +970,8 @@ public readonly outputPath: string;
 ```
 
 - *Type:* string
+
+Output path for the template file (default: 'cdk-drift-workflow-iam-template.yaml').
 
 ---
 
@@ -1016,6 +1156,10 @@ Retain stacks when account leaves OU (default: false).
 
 ### CdkDiffIamTemplate <a name="CdkDiffIamTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplate"></a>
 
+Projen construct that emits a CloudFormation template with minimal IAM permissions for the CDK Diff Stack Workflow.
+
+For non-Projen projects, use `CdkDiffIamTemplateGenerator` directly.
+
 #### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplate.Initializer"></a>
 
 ```typescript
@@ -1037,6 +1181,69 @@ new CdkDiffIamTemplate(props: CdkDiffIamTemplateProps)
 ---
 
 
+
+
+
+### CdkDiffIamTemplateGenerator <a name="CdkDiffIamTemplateGenerator" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator"></a>
+
+Pure generator class for CDK Diff IAM templates.
+
+No Projen dependency - can be used in any project.
+
+#### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.Initializer"></a>
+
+```typescript
+import { CdkDiffIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action'
+
+new CdkDiffIamTemplateGenerator()
+```
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+
+---
+
+
+#### Static Functions <a name="Static Functions" id="Static Functions"></a>
+
+| **Name** | **Description** |
+| --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.generateDeployCommand">generateDeployCommand</a></code> | Generate the AWS CLI deploy command for the IAM template. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.generateTemplate">generateTemplate</a></code> | Generate the CloudFormation IAM template as a YAML string. |
+
+---
+
+##### `generateDeployCommand` <a name="generateDeployCommand" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.generateDeployCommand"></a>
+
+```typescript
+import { CdkDiffIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action'
+
+CdkDiffIamTemplateGenerator.generateDeployCommand(templatePath?: string)
+```
+
+Generate the AWS CLI deploy command for the IAM template.
+
+###### `templatePath`<sup>Optional</sup> <a name="templatePath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.generateDeployCommand.parameter.templatePath"></a>
+
+- *Type:* string
+
+---
+
+##### `generateTemplate` <a name="generateTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.generateTemplate"></a>
+
+```typescript
+import { CdkDiffIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action'
+
+CdkDiffIamTemplateGenerator.generateTemplate(props: CdkDiffIamTemplateGeneratorProps)
+```
+
+Generate the CloudFormation IAM template as a YAML string.
+
+###### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGenerator.generateTemplate.parameter.props"></a>
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps">CdkDiffIamTemplateGeneratorProps</a>
+
+---
 
 
 
@@ -1191,6 +1398,10 @@ new CdkDriftDetectionWorkflow(props: CdkDriftDetectionWorkflowProps)
 
 ### CdkDriftIamTemplate <a name="CdkDriftIamTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplate"></a>
 
+Projen construct that emits a CloudFormation template with minimal IAM permissions for the CDK Drift Detection Workflow.
+
+For non-Projen projects, use `CdkDriftIamTemplateGenerator` directly.
+
 #### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplate.Initializer"></a>
 
 ```typescript
@@ -1212,6 +1423,69 @@ new CdkDriftIamTemplate(props: CdkDriftIamTemplateProps)
 ---
 
 
+
+
+
+### CdkDriftIamTemplateGenerator <a name="CdkDriftIamTemplateGenerator" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator"></a>
+
+Pure generator class for CDK Drift IAM templates.
+
+No Projen dependency - can be used in any project.
+
+#### Initializers <a name="Initializers" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.Initializer"></a>
+
+```typescript
+import { CdkDriftIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action'
+
+new CdkDriftIamTemplateGenerator()
+```
+
+| **Name** | **Type** | **Description** |
+| --- | --- | --- |
+
+---
+
+
+#### Static Functions <a name="Static Functions" id="Static Functions"></a>
+
+| **Name** | **Description** |
+| --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.generateDeployCommand">generateDeployCommand</a></code> | Generate the AWS CLI deploy command for the IAM template. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.generateTemplate">generateTemplate</a></code> | Generate the CloudFormation IAM template as a YAML string. |
+
+---
+
+##### `generateDeployCommand` <a name="generateDeployCommand" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.generateDeployCommand"></a>
+
+```typescript
+import { CdkDriftIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action'
+
+CdkDriftIamTemplateGenerator.generateDeployCommand(templatePath?: string)
+```
+
+Generate the AWS CLI deploy command for the IAM template.
+
+###### `templatePath`<sup>Optional</sup> <a name="templatePath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.generateDeployCommand.parameter.templatePath"></a>
+
+- *Type:* string
+
+---
+
+##### `generateTemplate` <a name="generateTemplate" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.generateTemplate"></a>
+
+```typescript
+import { CdkDriftIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action'
+
+CdkDriftIamTemplateGenerator.generateTemplate(props: CdkDriftIamTemplateGeneratorProps)
+```
+
+Generate the CloudFormation IAM template as a YAML string.
+
+###### `props`<sup>Required</sup> <a name="props" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGenerator.generateTemplate.parameter.props"></a>
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftIamTemplateGeneratorProps">CdkDriftIamTemplateGeneratorProps</a>
+
+---
 
 
 

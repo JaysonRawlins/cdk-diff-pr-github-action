@@ -107,7 +107,9 @@ If neither top‑level OIDC defaults nor all per‑stack values are supplied, th
 
 ## Usage: CdkDiffIamTemplate
 
-Emit an example IAM template you can deploy in your account for the Change Set workflow:
+Emit an example IAM template you can deploy in your account for the Change Set workflow.
+
+### With Projen
 
 ```ts
 import { awscdk } from 'projen';
@@ -129,19 +131,39 @@ new CdkDiffIamTemplate({
 project.synth();
 ```
 
-This writes `cdk-diff-workflow-iam-template.yaml` at the project root (or your chosen `outputPath`). The template defines:
+A Projen task is also added:
+
+```bash
+npx projen deploy-cdkdiff-iam-template -- --parameter-overrides GitHubOIDCRoleArn=... # plus any extra AWS CLI args
+```
+
+### Without Projen (Standalone Generator)
+
+```ts
+import { CdkDiffIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action';
+import * as fs from 'fs';
+
+const template = CdkDiffIamTemplateGenerator.generateTemplate({
+  roleName: 'cdk-diff-role',
+  oidcRoleArn: 'arn:aws:iam::123456789012:role/github-oidc-role',
+  oidcRegion: 'us-east-1',
+});
+
+fs.writeFileSync('cdk-diff-iam-template.yaml', template);
+
+// Get the deploy command
+const deployCmd = CdkDiffIamTemplateGenerator.generateDeployCommand('cdk-diff-iam-template.yaml');
+console.log('Deploy with:', deployCmd);
+```
+
+### What the template defines
+
 - Parameter `GitHubOIDCRoleArn` with a default from `oidcRoleArn` — the ARN of your existing GitHub OIDC role allowed to assume the change set role.
 - IAM role `CdkChangesetRole` with minimal permissions for:
   - CloudFormation Change Set operations
   - Access to common CDK bootstrap S3 buckets and SSM parameters
   - `iam:PassRole` to `cloudformation.amazonaws.com`
 - Outputs exporting the role name and ARN.
-
-A Projen task is also added:
-
-```bash
-npx projen deploy-cdkdiff-iam-template -- --parameter-overrides GitHubOIDCRoleArn=... # plus any extra AWS CLI args
-```
 
 Use the created role ARN as `changesetRoleToAssumeArn` in `CdkDiffStackWorkflow`.
 
@@ -281,7 +303,9 @@ Details:
 
 ## Usage: CdkDriftIamTemplate
 
-Emit an example IAM template you can deploy in your account for the Drift Detection workflow:
+Emit an example IAM template you can deploy in your account for the Drift Detection workflow.
+
+### With Projen
 
 ```ts
 import { awscdk } from 'projen';
@@ -303,16 +327,36 @@ new CdkDriftIamTemplate({
 project.synth();
 ```
 
-This writes `cdk-drift-workflow-iam-template.yaml` at the project root (or your chosen `outputPath`). The template defines:
-- Parameter `GitHubOIDCRoleArn` with a default from `oidcRoleArn` — the ARN of your existing GitHub OIDC role allowed to assume this drift role.
-- IAM role `CdkDriftRole` with minimal permissions for CloudFormation drift detection operations.
-- Outputs exporting the role name and ARN.
-
 A Projen task is also added:
 
 ```bash
 npx projen deploy-cdkdrift-iam-template -- --parameter-overrides GitHubOIDCRoleArn=... # plus any extra AWS CLI args
 ```
+
+### Without Projen (Standalone Generator)
+
+```ts
+import { CdkDriftIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action';
+import * as fs from 'fs';
+
+const template = CdkDriftIamTemplateGenerator.generateTemplate({
+  roleName: 'cdk-drift-role',
+  oidcRoleArn: 'arn:aws:iam::123456789012:role/github-oidc-role',
+  oidcRegion: 'us-east-1',
+});
+
+fs.writeFileSync('cdk-drift-iam-template.yaml', template);
+
+// Get the deploy command
+const deployCmd = CdkDriftIamTemplateGenerator.generateDeployCommand('cdk-drift-iam-template.yaml');
+console.log('Deploy with:', deployCmd);
+```
+
+### What the template defines
+
+- Parameter `GitHubOIDCRoleArn` with a default from `oidcRoleArn` — the ARN of your existing GitHub OIDC role allowed to assume this drift role.
+- IAM role `CdkDriftRole` with minimal permissions for CloudFormation drift detection operations.
+- Outputs exporting the role name and ARN.
 
 ---
 
