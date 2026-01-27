@@ -654,33 +654,13 @@ const cdkDiffStackWorkflowProps: CdkDiffStackWorkflowProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.project">project</a></code> | <code>any</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.stacks">stacks</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStack">CdkDiffStack</a>[]</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.cdkYarnCommand">cdkYarnCommand</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.nodeVersion">nodeVersion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
-
----
-
-##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRegion"></a>
-
-```typescript
-public readonly oidcRegion: string;
-```
-
-- *Type:* string
-
----
-
-##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRoleArn"></a>
-
-```typescript
-public readonly oidcRoleArn: string;
-```
-
-- *Type:* string
 
 ---
 
@@ -724,6 +704,26 @@ public readonly nodeVersion: string;
 
 ---
 
+##### `oidcRegion`<sup>Optional</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRoleArn`<sup>Optional</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+---
+
 ##### `scriptOutputPath`<sup>Optional</sup> <a name="scriptOutputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.scriptOutputPath"></a>
 
 ```typescript
@@ -748,36 +748,16 @@ const cdkDriftDetectionWorkflowProps: CdkDriftDetectionWorkflowProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.project">project</a></code> | <code>any</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.stacks">stacks</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack">Stack</a>[]</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.createIssues">createIssues</a></code> | <code>boolean</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.nodeVersion">nodeVersion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.postGitHubSteps">postGitHubSteps</a></code> | <code>any</code> | Optional additional GitHub Action steps to run after drift detection for each stack. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.schedule">schedule</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workflowName">workflowName</a></code> | <code>string</code> | *No description.* |
-
----
-
-##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion"></a>
-
-```typescript
-public readonly oidcRegion: string;
-```
-
-- *Type:* string
-
----
-
-##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn"></a>
-
-```typescript
-public readonly oidcRoleArn: string;
-```
-
-- *Type:* string
 
 ---
 
@@ -815,6 +795,26 @@ public readonly createIssues: boolean;
 
 ```typescript
 public readonly nodeVersion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRegion`<sup>Optional</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRoleArn`<sup>Optional</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
 ```
 
 - *Type:* string
@@ -1098,6 +1098,8 @@ const stack: Stack = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.driftDetectionRoleToAssumeRegion">driftDetectionRoleToAssumeRegion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.stackName">stackName</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.failOnDrift">failOnDrift</a></code> | <code>boolean</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.Stack.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 
 ---
 
@@ -1138,6 +1140,26 @@ public readonly failOnDrift: boolean;
 ```
 
 - *Type:* boolean
+
+---
+
+##### `oidcRegion`<sup>Optional</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.Stack.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+---
+
+##### `oidcRoleArn`<sup>Optional</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.Stack.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
 
 ---
 
