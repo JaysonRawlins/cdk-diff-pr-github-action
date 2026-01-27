@@ -71,6 +71,14 @@ export interface CdkDiffIamTemplateStackSetGeneratorProps {
 
   /** Description for the StackSet */
   readonly description?: string;
+
+  /**
+   * Skip creating the OIDC provider (use existing one).
+   * Set to true if accounts already have a GitHub OIDC provider.
+   * The template will reference the existing provider by ARN.
+   * Default: false
+   */
+  readonly skipOidcProviderCreation?: boolean;
 }
 
 /**
@@ -113,6 +121,7 @@ export class CdkDiffIamTemplateStackSetGenerator {
     const changesetRoleName = props.changesetRoleName ?? 'CdkChangesetRole';
     const driftRoleName = props.driftRoleName ?? 'CdkDriftRole';
     const roleSelection = props.roleSelection ?? StackSetRoleSelection.BOTH;
+    const skipOidcProvider = props.skipOidcProviderCreation ?? false;
 
     const lines = this.generateTemplateLines(
       props.githubOidc,
@@ -121,6 +130,7 @@ export class CdkDiffIamTemplateStackSetGenerator {
       driftRoleName,
       roleSelection,
       props.description,
+      skipOidcProvider,
     );
 
     return lines.join('\n');
@@ -161,6 +171,7 @@ export class CdkDiffIamTemplateStackSetGenerator {
     driftRoleName: string,
     roleSelection: StackSetRoleSelection,
     description?: string,
+    skipOidcProvider: boolean = false,
   ): string[] {
     const lines: string[] = [];
     const desc = description ?? 'GitHub OIDC and IAM roles for CDK Diff/Drift workflows (StackSet deployment)';
@@ -178,11 +189,13 @@ export class CdkDiffIamTemplateStackSetGenerator {
     // Resources
     lines.push('Resources:');
 
-    // OIDC Provider
-    lines.push(...this.generateOidcProviderLines());
+    // OIDC Provider (only if not skipping)
+    if (!skipOidcProvider) {
+      lines.push(...this.generateOidcProviderLines());
+    }
 
     // OIDC Role
-    lines.push(...this.generateOidcRoleLines(oidcRoleName, githubOidc));
+    lines.push(...this.generateOidcRoleLines(oidcRoleName, githubOidc, skipOidcProvider));
 
     // Changeset/Drift roles
     if (includeChangeset) {
@@ -196,7 +209,12 @@ export class CdkDiffIamTemplateStackSetGenerator {
     // Outputs
     lines.push('');
     lines.push('Outputs:');
-    lines.push(...this.generateOidcOutputLines());
+    if (!skipOidcProvider) {
+      lines.push(...this.generateOidcOutputLines());
+    }
+
+    // Always output the OIDC role ARN
+    lines.push(...this.generateOidcRoleOutputLines());
 
     if (includeChangeset) {
       lines.push(...this.generateChangesetOutputLines());
@@ -225,14 +243,25 @@ export class CdkDiffIamTemplateStackSetGenerator {
     ];
   }
 
-  private static generateOidcRoleLines(roleName: string, githubOidc: GitHubOidcConfig): string[] {
+  private static generateOidcRoleLines(
+    roleName: string,
+    githubOidc: GitHubOidcConfig,
+    skipOidcProvider: boolean = false,
+  ): string[] {
     const subjectClaims = this.buildSubjectClaims(githubOidc);
 
     const lines = [
       '  # GitHub OIDC Role - authenticates GitHub Actions workflows',
       '  GitHubOIDCRole:',
       '    Type: AWS::IAM::Role',
-      '    DependsOn: GitHubOIDCProvider',
+    ];
+
+    // Only add DependsOn if we're creating the provider
+    if (!skipOidcProvider) {
+      lines.push('    DependsOn: GitHubOIDCProvider');
+    }
+
+    lines.push(
       '    Properties:',
       "      RoleName: '" + roleName + "'",
       '      AssumeRolePolicyDocument:',
@@ -247,7 +276,7 @@ export class CdkDiffIamTemplateStackSetGenerator {
       "                'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com'",
       '              StringLike:',
       "                'token.actions.githubusercontent.com:sub':",
-    ];
+    );
 
     // Add subject claims
     for (const claim of subjectClaims) {
@@ -400,6 +429,11 @@ export class CdkDiffIamTemplateStackSetGenerator {
       '    Export:',
       "      Name: !Sub '${AWS::StackName}-GitHubOIDCProviderArn'",
       '',
+    ];
+  }
+
+  private static generateOidcRoleOutputLines(): string[] {
+    return [
       '  GitHubOIDCRoleArn:',
       "    Description: 'ARN of the GitHub OIDC role'",
       '    Value: !GetAtt GitHubOIDCRole.Arn',

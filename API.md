@@ -267,6 +267,7 @@ const cdkDiffIamTemplateStackSetGeneratorProps: CdkDiffIamTemplateStackSetGenera
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetGeneratorProps.property.driftRoleName">driftRoleName</a></code> | <code>string</code> | Name of the CdkDriftRole (default: 'CdkDriftRole'). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetGeneratorProps.property.oidcRoleName">oidcRoleName</a></code> | <code>string</code> | Name of the GitHub OIDC role (default: 'GitHubOIDCRole'). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetGeneratorProps.property.roleSelection">roleSelection</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection">StackSetRoleSelection</a></code> | Which roles to include (default: BOTH). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetGeneratorProps.property.skipOidcProviderCreation">skipOidcProviderCreation</a></code> | <code>boolean</code> | Skip creating the OIDC provider (use existing one). |
 
 ---
 
@@ -342,6 +343,22 @@ Which roles to include (default: BOTH).
 
 ---
 
+##### `skipOidcProviderCreation`<sup>Optional</sup> <a name="skipOidcProviderCreation" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetGeneratorProps.property.skipOidcProviderCreation"></a>
+
+```typescript
+public readonly skipOidcProviderCreation: boolean;
+```
+
+- *Type:* boolean
+
+Skip creating the OIDC provider (use existing one).
+
+Set to true if accounts already have a GitHub OIDC provider.
+The template will reference the existing provider by ARN.
+Default: false
+
+---
+
 ### CdkDiffIamTemplateStackSetProps <a name="CdkDiffIamTemplateStackSetProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps"></a>
 
 Props for the Projen-integrated StackSet construct.
@@ -364,6 +381,7 @@ const cdkDiffIamTemplateStackSetProps: CdkDiffIamTemplateStackSetProps = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.driftRoleName">driftRoleName</a></code> | <code>string</code> | Name of the CdkDriftRole (default: 'CdkDriftRole'). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.oidcRoleName">oidcRoleName</a></code> | <code>string</code> | Name of the GitHub OIDC role (default: 'GitHubOIDCRole'). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.roleSelection">roleSelection</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection">StackSetRoleSelection</a></code> | Which roles to include (default: BOTH). |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.skipOidcProviderCreation">skipOidcProviderCreation</a></code> | <code>boolean</code> | Skip creating the OIDC provider (use existing one). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.project">project</a></code> | <code>any</code> | Projen project instance. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.autoDeployment">autoDeployment</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetAutoDeployment">StackSetAutoDeployment</a></code> | Auto-deployment configuration. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.delegatedAdmin">delegatedAdmin</a></code> | <code>boolean</code> | Whether to use delegated admin mode for StackSet operations. |
@@ -443,6 +461,22 @@ public readonly roleSelection: StackSetRoleSelection;
 - *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.StackSetRoleSelection">StackSetRoleSelection</a>
 
 Which roles to include (default: BOTH).
+
+---
+
+##### `skipOidcProviderCreation`<sup>Optional</sup> <a name="skipOidcProviderCreation" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateStackSetProps.property.skipOidcProviderCreation"></a>
+
+```typescript
+public readonly skipOidcProviderCreation: boolean;
+```
+
+- *Type:* boolean
+
+Skip creating the OIDC provider (use existing one).
+
+Set to true if accounts already have a GitHub OIDC provider.
+The template will reference the existing provider by ARN.
+Default: false
 
 ---
 

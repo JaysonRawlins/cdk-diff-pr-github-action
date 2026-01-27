@@ -463,4 +463,46 @@ describe('CdkDiffIamTemplateStackSet', () => {
     );
     expect(tasksJson.tasks['stackset-deploy-instances'].steps[0].exec).toContain('--regions us-east-1 eu-west-1');
   });
+
+  test('skips OIDC provider creation when skipOidcProviderCreation is true', () => {
+    const app = new awscdk.AwsCdkTypeScriptApp({
+      name: 'test-app',
+      defaultReleaseBranch: 'main',
+      cdkVersion: '2.85.0',
+      projenrcTs: false,
+      github: false,
+    } as any);
+
+    new CdkDiffIamTemplateStackSet({
+      project: app,
+      githubOidc: {
+        owner: 'my-org',
+        repositories: ['my-repo'],
+        branches: ['main'],
+      },
+      skipOidcProviderCreation: true,
+    });
+
+    const out = synthSnapshot(app);
+    const file = out['cdk-diff-workflow-stackset-template.yaml'];
+    const text = file.toString();
+
+    // OIDC Provider should NOT be present
+    expect(text).not.toContain('GitHubOIDCProvider:');
+    expect(text).not.toContain('Type: AWS::IAM::OIDCProvider');
+    expect(text).not.toContain('GitHubOIDCProviderArn:');
+
+    // OIDC Role should still be present (references existing provider)
+    expect(text).toContain('GitHubOIDCRole:');
+    expect(text).toContain('sts:AssumeRoleWithWebIdentity');
+    expect(text).toContain('GitHubOIDCRoleArn:');
+
+    // OIDC Role should NOT have DependsOn GitHubOIDCProvider
+    expect(text).not.toContain('DependsOn: GitHubOIDCProvider');
+
+    // Workflow roles should still be present and trust the OIDC role
+    expect(text).toContain('CdkChangesetRole:');
+    expect(text).toContain('CdkDriftRole:');
+    expect(text).toContain('!GetAtt GitHubOIDCRole.Arn');
+  });
 });

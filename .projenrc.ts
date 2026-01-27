@@ -20,6 +20,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
   cdkCliVersion: cdkCliVersion,
   projenVersion: `^${minProjenVersion}`,
   defaultReleaseBranch: 'main',
+  majorVersion: 1, // Bump to 1.0.0 for StackSet and dual-mode API features
   license: 'Apache-2.0',
   jsiiVersion: jsiiVersion,
   name: '@jjrawlins/cdk-diff-pr-github-action',
