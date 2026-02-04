@@ -39,7 +39,7 @@
     "@stylistic/eslint-plugin": "^2",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.23",
-    "@types/node": "^24.10.9",
+    "@types/node": "^24.10.10",
     "@typescript-eslint/eslint-plugin": "^8",
     "@typescript-eslint/parser": "^8",
     "aws-cdk": "2.1029.2",
@@ -66,7 +66,7 @@
     "constructs": ">=10.0.5 <11.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "^3.981.0",
+    "@aws-sdk/client-cloudformation": "^3.982.0",
     "@types/crypto-js": "^4.2.2",
     "@types/js-yaml": "^4.0.9",
     "crypto-js": "^4.2.0",
