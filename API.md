@@ -19,33 +19,13 @@ const cdkDiffIamTemplateGeneratorProps: CdkDiffIamTemplateGeneratorProps = { ...
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the changeset IAM role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.createOidcRole">createOidcRole</a></code> | <code>boolean</code> | Create a GitHub OIDC role within this template instead of using an existing one. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.githubOidc">githubOidc</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig">GitHubOidcConfig</a></code> | GitHub OIDC configuration for repo/branch restrictions. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | Region for the OIDC trust condition. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | ARN of the existing GitHub OIDC role that can assume this changeset role. |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the IAM role. |
-
----
-
-##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRegion"></a>
-
-```typescript
-public readonly oidcRegion: string;
-```
-
-- *Type:* string
-
-Region for the OIDC trust condition.
-
----
-
-##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleArn"></a>
-
-```typescript
-public readonly oidcRoleArn: string;
-```
-
-- *Type:* string
-
-ARN of the existing GitHub OIDC role that can assume this changeset role.
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleName">oidcRoleName</a></code> | <code>string</code> | Name of the GitHub OIDC role to create. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.skipOidcProviderCreation">skipOidcProviderCreation</a></code> | <code>boolean</code> | Skip creating the OIDC provider (use existing one). |
 
 ---
 
@@ -57,7 +37,95 @@ public readonly roleName: string;
 
 - *Type:* string
 
-Name for the IAM role.
+Name for the changeset IAM role.
+
+---
+
+##### `createOidcRole`<sup>Optional</sup> <a name="createOidcRole" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.createOidcRole"></a>
+
+```typescript
+public readonly createOidcRole: boolean;
+```
+
+- *Type:* boolean
+
+Create a GitHub OIDC role within this template instead of using an existing one.
+
+When true, githubOidc configuration is required and oidcRoleArn is ignored.
+Default: false
+
+---
+
+##### `githubOidc`<sup>Optional</sup> <a name="githubOidc" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.githubOidc"></a>
+
+```typescript
+public readonly githubOidc: GitHubOidcConfig;
+```
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig">GitHubOidcConfig</a>
+
+GitHub OIDC configuration for repo/branch restrictions.
+
+Required when createOidcRole is true.
+
+---
+
+##### `oidcRegion`<sup>Optional</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+Region for the OIDC trust condition.
+
+Only used when oidcRoleArn is provided (external OIDC role).
+
+---
+
+##### `oidcRoleArn`<sup>Optional</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+ARN of the existing GitHub OIDC role that can assume this changeset role.
+
+Required when createOidcRole is false or undefined.
+
+---
+
+##### `oidcRoleName`<sup>Optional</sup> <a name="oidcRoleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.oidcRoleName"></a>
+
+```typescript
+public readonly oidcRoleName: string;
+```
+
+- *Type:* string
+
+Name of the GitHub OIDC role to create.
+
+Only used when createOidcRole is true.
+Default: 'GitHubOIDCRole'
+
+---
+
+##### `skipOidcProviderCreation`<sup>Optional</sup> <a name="skipOidcProviderCreation" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateGeneratorProps.property.skipOidcProviderCreation"></a>
+
+```typescript
+public readonly skipOidcProviderCreation: boolean;
+```
+
+- *Type:* boolean
+
+Skip creating the OIDC provider (use existing one).
+
+Set to true if the account already has a GitHub OIDC provider.
+Only used when createOidcRole is true.
+Default: false
 
 ---
 
@@ -77,35 +145,15 @@ const cdkDiffIamTemplateProps: CdkDiffIamTemplateProps = { ... }
 
 | **Name** | **Type** | **Description** |
 | --- | --- | --- |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the changeset IAM role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.createOidcRole">createOidcRole</a></code> | <code>boolean</code> | Create a GitHub OIDC role within this template instead of using an existing one. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.githubOidc">githubOidc</a></code> | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig">GitHubOidcConfig</a></code> | GitHub OIDC configuration for repo/branch restrictions. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | Region for the OIDC trust condition. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | ARN of the existing GitHub OIDC role that can assume this changeset role. |
-| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.roleName">roleName</a></code> | <code>string</code> | Name for the IAM role. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleName">oidcRoleName</a></code> | <code>string</code> | Name of the GitHub OIDC role to create. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.skipOidcProviderCreation">skipOidcProviderCreation</a></code> | <code>boolean</code> | Skip creating the OIDC provider (use existing one). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.project">project</a></code> | <code>any</code> | Projen project instance. |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.outputPath">outputPath</a></code> | <code>string</code> | Output path for the template file (default: 'cdk-diff-workflow-iam-template.yaml'). |
-
----
-
-##### `oidcRegion`<sup>Required</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion"></a>
-
-```typescript
-public readonly oidcRegion: string;
-```
-
-- *Type:* string
-
-Region for the OIDC trust condition.
-
----
-
-##### `oidcRoleArn`<sup>Required</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn"></a>
-
-```typescript
-public readonly oidcRoleArn: string;
-```
-
-- *Type:* string
-
-ARN of the existing GitHub OIDC role that can assume this changeset role.
 
 ---
 
@@ -117,7 +165,95 @@ public readonly roleName: string;
 
 - *Type:* string
 
-Name for the IAM role.
+Name for the changeset IAM role.
+
+---
+
+##### `createOidcRole`<sup>Optional</sup> <a name="createOidcRole" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.createOidcRole"></a>
+
+```typescript
+public readonly createOidcRole: boolean;
+```
+
+- *Type:* boolean
+
+Create a GitHub OIDC role within this template instead of using an existing one.
+
+When true, githubOidc configuration is required and oidcRoleArn is ignored.
+Default: false
+
+---
+
+##### `githubOidc`<sup>Optional</sup> <a name="githubOidc" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.githubOidc"></a>
+
+```typescript
+public readonly githubOidc: GitHubOidcConfig;
+```
+
+- *Type:* <a href="#@jjrawlins/cdk-diff-pr-github-action.GitHubOidcConfig">GitHubOidcConfig</a>
+
+GitHub OIDC configuration for repo/branch restrictions.
+
+Required when createOidcRole is true.
+
+---
+
+##### `oidcRegion`<sup>Optional</sup> <a name="oidcRegion" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRegion"></a>
+
+```typescript
+public readonly oidcRegion: string;
+```
+
+- *Type:* string
+
+Region for the OIDC trust condition.
+
+Only used when oidcRoleArn is provided (external OIDC role).
+
+---
+
+##### `oidcRoleArn`<sup>Optional</sup> <a name="oidcRoleArn" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleArn"></a>
+
+```typescript
+public readonly oidcRoleArn: string;
+```
+
+- *Type:* string
+
+ARN of the existing GitHub OIDC role that can assume this changeset role.
+
+Required when createOidcRole is false or undefined.
+
+---
+
+##### `oidcRoleName`<sup>Optional</sup> <a name="oidcRoleName" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.oidcRoleName"></a>
+
+```typescript
+public readonly oidcRoleName: string;
+```
+
+- *Type:* string
+
+Name of the GitHub OIDC role to create.
+
+Only used when createOidcRole is true.
+Default: 'GitHubOIDCRole'
+
+---
+
+##### `skipOidcProviderCreation`<sup>Optional</sup> <a name="skipOidcProviderCreation" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffIamTemplateProps.property.skipOidcProviderCreation"></a>
+
+```typescript
+public readonly skipOidcProviderCreation: boolean;
+```
+
+- *Type:* boolean
+
+Skip creating the OIDC provider (use existing one).
+
+Set to true if the account already has a GitHub OIDC provider.
+Only used when createOidcRole is true.
+Default: false
 
 ---
 

@@ -107,9 +107,16 @@ If neither top‑level OIDC defaults nor all per‑stack values are supplied, th
 
 ## Usage: CdkDiffIamTemplate
 
-Emit an example IAM template you can deploy in your account for the Change Set workflow.
+Emit an IAM template you can deploy in your account for the Change Set workflow. Supports two modes:
 
-### With Projen
+1. **External OIDC Role** — Reference an existing GitHub OIDC role (original behavior)
+2. **Self-Contained** — Create the GitHub OIDC provider and role within the same template (new)
+
+### Option 1: Using an Existing OIDC Role (External)
+
+Use this when you already have a GitHub OIDC provider and role set up in your account.
+
+#### With Projen
 
 ```ts
 import { awscdk } from 'projen';
@@ -131,13 +138,7 @@ new CdkDiffIamTemplate({
 project.synth();
 ```
 
-A Projen task is also added:
-
-```bash
-npx projen deploy-cdkdiff-iam-template -- --parameter-overrides GitHubOIDCRoleArn=... # plus any extra AWS CLI args
-```
-
-### Without Projen (Standalone Generator)
+#### Without Projen (Standalone Generator)
 
 ```ts
 import { CdkDiffIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action';
@@ -150,22 +151,116 @@ const template = CdkDiffIamTemplateGenerator.generateTemplate({
 });
 
 fs.writeFileSync('cdk-diff-iam-template.yaml', template);
-
-// Get the deploy command
-const deployCmd = CdkDiffIamTemplateGenerator.generateDeployCommand('cdk-diff-iam-template.yaml');
-console.log('Deploy with:', deployCmd);
 ```
 
-### What the template defines
+### Option 2: Self-Contained Template (Create OIDC Role)
 
-- Parameter `GitHubOIDCRoleArn` with a default from `oidcRoleArn` — the ARN of your existing GitHub OIDC role allowed to assume the change set role.
-- IAM role `CdkChangesetRole` with minimal permissions for:
-  - CloudFormation Change Set operations
-  - Access to common CDK bootstrap S3 buckets and SSM parameters
-  - `iam:PassRole` to `cloudformation.amazonaws.com`
-- Outputs exporting the role name and ARN.
+Use this when you want a single template that creates everything needed — the GitHub OIDC provider, OIDC role, and changeset role. This simplifies deployment and pairs well with the `CdkDiffStackWorkflow`.
 
-Use the created role ARN as `changesetRoleToAssumeArn` in `CdkDiffStackWorkflow`.
+#### With Projen
+
+```ts
+import { awscdk } from 'projen';
+import { CdkDiffIamTemplate } from '@jjrawlins/cdk-diff-pr-github-action';
+
+const project = new awscdk.AwsCdkConstructLibrary({
+  // ...
+});
+
+new CdkDiffIamTemplate({
+  project,
+  roleName: 'CdkChangesetRole',
+  createOidcRole: true,
+  oidcRoleName: 'GitHubOIDCRole',  // Optional, default: 'GitHubOIDCRole'
+  githubOidc: {
+    owner: 'my-org',                          // GitHub org or username
+    repositories: ['infra-repo', 'app-repo'], // Repos allowed to assume roles
+    branches: ['main', 'release/*'],          // Branch patterns (default: ['*'])
+  },
+  // Optional: Skip OIDC provider creation if it already exists
+  // skipOidcProviderCreation: true,
+});
+
+project.synth();
+```
+
+#### Without Projen (Standalone Generator)
+
+```ts
+import { CdkDiffIamTemplateGenerator } from '@jjrawlins/cdk-diff-pr-github-action';
+import * as fs from 'fs';
+
+const template = CdkDiffIamTemplateGenerator.generateTemplate({
+  roleName: 'CdkChangesetRole',
+  createOidcRole: true,
+  oidcRoleName: 'GitHubOIDCRole',
+  githubOidc: {
+    owner: 'my-org',
+    repositories: ['infra-repo'],
+    branches: ['main'],
+  },
+});
+
+fs.writeFileSync('cdk-diff-iam-template.yaml', template);
+```
+
+#### With Existing OIDC Provider (Skip Creation)
+
+If your account already has a GitHub OIDC provider but you want the template to create the roles:
+
+```ts
+new CdkDiffIamTemplate({
+  project,
+  roleName: 'CdkChangesetRole',
+  createOidcRole: true,
+  skipOidcProviderCreation: true,  // Account already has OIDC provider
+  githubOidc: {
+    owner: 'my-org',
+    repositories: ['*'],  // All repos in org
+  },
+});
+```
+
+### Deploy Task
+
+A Projen task is added for easy deployment:
+
+```bash
+npx projen deploy-cdkdiff-iam-template -- --parameter-overrides GitHubOIDCRoleArn=... # plus any extra AWS CLI args
+```
+
+### CdkDiffIamTemplate Props
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `roleName` | `string` | Name for the changeset IAM role (required) |
+| `oidcRoleArn` | `string?` | ARN of existing GitHub OIDC role. Required when `createOidcRole` is false. |
+| `oidcRegion` | `string?` | Region for OIDC trust condition. Required when `createOidcRole` is false. |
+| `createOidcRole` | `boolean?` | Create OIDC role within template (default: false) |
+| `oidcRoleName` | `string?` | Name of OIDC role to create (default: 'GitHubOIDCRole') |
+| `githubOidc` | `GitHubOidcConfig?` | GitHub OIDC config. Required when `createOidcRole` is true. |
+| `skipOidcProviderCreation` | `boolean?` | Skip OIDC provider if it exists (default: false) |
+| `outputPath` | `string?` | Template output path (default: 'cdk-diff-workflow-iam-template.yaml') |
+
+### What the Template Creates
+
+**External OIDC Role mode:**
+- Parameter `GitHubOIDCRoleArn` — ARN of your existing GitHub OIDC role
+- IAM role `CdkChangesetRole` with minimal permissions for change set operations
+- Outputs: `CdkChangesetRoleArn`, `CdkChangesetRoleName`
+
+**Self-Contained mode (`createOidcRole: true`):**
+- GitHub OIDC Provider (unless `skipOidcProviderCreation: true`)
+- IAM role `GitHubOIDCRole` with trust policy for GitHub Actions
+- IAM role `CdkChangesetRole` with minimal permissions (trusts the OIDC role)
+- Outputs: `GitHubOIDCProviderArn`, `GitHubOIDCRoleArn`, `GitHubOIDCRoleName`, `CdkChangesetRoleArn`, `CdkChangesetRoleName`
+
+**Changeset Role Permissions:**
+- CloudFormation Change Set operations
+- Access to CDK bootstrap S3 buckets and SSM parameters
+- `iam:PassRole` to `cloudformation.amazonaws.com`
+
+Use the created changeset role ARN as `changesetRoleToAssumeArn` in `CdkDiffStackWorkflow`.
 
 ---
 
