@@ -186,6 +186,8 @@ releaseWorkflow.file!.addOverride('jobs.release_npm.permissions.contents', 'writ
 // Override node-version to 24 for npm trusted publishing (requires npm 11.5.1+)
 // This only affects the release_npm job, not the project's minNodeVersion
 releaseWorkflow.file!.addOverride('jobs.release_npm.steps.0.with.node-version', '24');
+// Add --ignore-engines to yarn install since Node 24 is outside the engines range (20.x)
+releaseWorkflow.file!.addOverride('jobs.release_npm.steps.4.run', 'cd .repo && yarn install --check-files --frozen-lockfile --ignore-engines');
 
 project.synth();
 

@@ -112,7 +112,7 @@ jobs:
         with:
           path: .repo
       - name: Install Dependencies
-        run: cd .repo && yarn install --check-files --frozen-lockfile
+        run: cd .repo && yarn install --check-files --frozen-lockfile --ignore-engines
       - name: Extract build artifact
         run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo
       - name: Move build artifact out of the way
