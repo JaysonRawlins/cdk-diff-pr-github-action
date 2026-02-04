@@ -194,8 +194,11 @@ export class CdkDiffIamTemplateStackSetGenerator {
       lines.push(...this.generateOidcProviderLines());
     }
 
-    // OIDC Role
-    lines.push(...this.generateOidcRoleLines(oidcRoleName, githubOidc, skipOidcProvider));
+    // OIDC Role (needs permissions to assume changeset/drift roles)
+    const targetRoleNames: string[] = [];
+    if (includeChangeset) targetRoleNames.push(changesetRoleName);
+    if (includeDrift) targetRoleNames.push(driftRoleName);
+    lines.push(...this.generateOidcRoleLines(oidcRoleName, githubOidc, skipOidcProvider, targetRoleNames));
 
     // Changeset/Drift roles
     if (includeChangeset) {
@@ -247,6 +250,7 @@ export class CdkDiffIamTemplateStackSetGenerator {
     roleName: string,
     githubOidc: GitHubOidcConfig,
     skipOidcProvider: boolean = false,
+    targetRoleNames: string[] = [],
   ): string[] {
     const subjectClaims = this.buildSubjectClaims(githubOidc);
 
@@ -281,6 +285,21 @@ export class CdkDiffIamTemplateStackSetGenerator {
     // Add subject claims
     for (const claim of subjectClaims) {
       lines.push(`                  - '${claim}'`);
+    }
+
+    // Add policy to allow assuming the target roles (changeset/drift)
+    if (targetRoleNames.length > 0) {
+      lines.push('      Policies:');
+      lines.push('        - PolicyName: AssumeTargetRoles');
+      lines.push('          PolicyDocument:');
+      lines.push("            Version: '2012-10-17'");
+      lines.push('            Statement:');
+      lines.push('              - Effect: Allow');
+      lines.push('                Action: sts:AssumeRole');
+      lines.push('                Resource:');
+      for (const targetRoleName of targetRoleNames) {
+        lines.push(`                  - !Sub 'arn:aws:iam::\${AWS::AccountId}:role/${targetRoleName}'`);
+      }
     }
 
     lines.push('');

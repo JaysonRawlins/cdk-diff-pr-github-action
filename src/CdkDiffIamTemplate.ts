@@ -108,8 +108,8 @@ export class CdkDiffIamTemplateGenerator {
       lines.push(...this.generateOidcProviderLines());
     }
 
-    // OIDC Role
-    lines.push(...this.generateOidcRoleLines(oidcRoleName, githubOidc, skipOidcProvider));
+    // OIDC Role (needs permission to assume the changeset role)
+    lines.push(...this.generateOidcRoleLines(oidcRoleName, githubOidc, skipOidcProvider, props.roleName));
 
     // Changeset Role (trusts the created OIDC role)
     lines.push(...this.generateChangesetRoleWithOidcRef(props.roleName));
@@ -235,6 +235,7 @@ export class CdkDiffIamTemplateGenerator {
     roleName: string,
     githubOidc: GitHubOidcConfig,
     skipOidcProvider: boolean = false,
+    changesetRoleName?: string,
   ): string[] {
     const subjectClaims = this.buildSubjectClaims(githubOidc);
 
@@ -269,6 +270,18 @@ export class CdkDiffIamTemplateGenerator {
     // Add subject claims
     for (const claim of subjectClaims) {
       lines.push(`                  - '${claim}'`);
+    }
+
+    // Add policy to allow assuming the changeset role (if specified)
+    if (changesetRoleName) {
+      lines.push('      Policies:');
+      lines.push('        - PolicyName: AssumeChangesetRole');
+      lines.push('          PolicyDocument:');
+      lines.push("            Version: '2012-10-17'");
+      lines.push('            Statement:');
+      lines.push('              - Effect: Allow');
+      lines.push('                Action: sts:AssumeRole');
+      lines.push(`                Resource: !Sub 'arn:aws:iam::\${AWS::AccountId}:role/${changesetRoleName}'`);
     }
 
     lines.push('');
