@@ -95,6 +95,26 @@ If neither top‑level OIDC defaults nor all per‑stack values are supplied, th
   - Renders an HTML table with actions, logical IDs, types, replacements, and changed properties
   - Prints the HTML, appends to the GitHub Step Summary, and (if `GITHUB_TOKEN` and `GITHUB_COMMENT_URL` are present) posts a PR comment
 
+### Change Set Output Format
+
+The change set script uses the CloudFormation `IncludePropertyValues` API feature to show **actual before/after values** for changed properties, not just property names.
+
+**Example output:**
+
+| Action | ID | Type | Replacement | Details |
+|--------|-----|------|-------------|---------|
+| 🔵 Modify | MyLambdaFunction | AWS::Lambda::Function | False | 🔵 **Runtime**: `nodejs18.x` → `nodejs20.x` |
+| 🔵 Modify | MyBucket | AWS::S3::Bucket | False | 🟢 **Tags** (added) ▶ |
+| 🟢 Add | NewSecurityGroup | AWS::EC2::SecurityGroup | - | |
+| 🔴 Remove | OldRole | AWS::IAM::Role | - | |
+
+**Features:**
+- **Color-coded indicators**: 🟢 Added, 🔵 Modified, 🔴 Removed
+- **Inline values for small changes**: Shows `before → after` directly in the table
+- **Collapsible details for large values**: IAM policies, tags, and other large JSON values are wrapped in expandable `<details>` elements to keep the table readable
+- **All attribute types supported**: Properties, Tags, Metadata, etc.
+- **HTML-escaped values**: Prevents XSS from property values
+
 ### Environment variables used by the change set script
 - `STACK_NAME` (required) — Stack name to describe.
 - `CHANGE_SET_NAME` (default: same as `STACK_NAME`).
