@@ -171,6 +171,7 @@ export class CdkDiffIamTemplateGenerator {
       '                  - cloudformation:DeleteChangeSet',
       '                  - cloudformation:ListChangeSets',
       '                  - cloudformation:DescribeStacks',
+      '                  - cloudformation:GetTemplate',
       "                Resource: '*'",
       '              # CDK bootstrap bucket access (for changeset creation)',
       '              - Effect: Allow',
@@ -272,17 +273,66 @@ export class CdkDiffIamTemplateGenerator {
       lines.push(`                  - '${claim}'`);
     }
 
-    // Add policy to allow assuming the changeset role (if specified)
+    // Add policies for assuming changeset role and CDK bootstrap roles, plus CDK diff permissions
+    lines.push('      Policies:');
+
+    // Policy 1: AssumeChangesetRole - allows assuming changeset role and CDK bootstrap roles
+    lines.push('        - PolicyName: AssumeChangesetRole');
+    lines.push('          PolicyDocument:');
+    lines.push("            Version: '2012-10-17'");
+    lines.push('            Statement:');
+    lines.push('              - Effect: Allow');
+    lines.push('                Action: sts:AssumeRole');
+    lines.push('                Resource:');
     if (changesetRoleName) {
-      lines.push('      Policies:');
-      lines.push('        - PolicyName: AssumeChangesetRole');
-      lines.push('          PolicyDocument:');
-      lines.push("            Version: '2012-10-17'");
-      lines.push('            Statement:');
-      lines.push('              - Effect: Allow');
-      lines.push('                Action: sts:AssumeRole');
-      lines.push(`                Resource: !Sub 'arn:aws:iam::\${AWS::AccountId}:role/${changesetRoleName}'`);
+      lines.push(`                  - !Sub 'arn:aws:iam::\${AWS::AccountId}:role/${changesetRoleName}'`);
     }
+    // CDK bootstrap roles
+    lines.push('                  # CDK bootstrap roles');
+    lines.push("                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-deploy-role-${AWS::AccountId}-${AWS::Region}'");
+    lines.push("                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}'");
+    lines.push("                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-image-publishing-role-${AWS::AccountId}-${AWS::Region}'");
+    lines.push("                  - !Sub 'arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-lookup-role-${AWS::AccountId}-${AWS::Region}'");
+
+    // Policy 2: CdkDiffPermissions - direct permissions for CDK diff operations
+    lines.push('        - PolicyName: CdkDiffPermissions');
+    lines.push('          PolicyDocument:');
+    lines.push("            Version: '2012-10-17'");
+    lines.push('            Statement:');
+    lines.push('              # CDK bootstrap parameter access (needed for cdk deploy/diff)');
+    lines.push('              - Effect: Allow');
+    lines.push('                Action:');
+    lines.push('                  - ssm:GetParameter');
+    lines.push('                  - ssm:GetParameters');
+    lines.push("                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/cdk-bootstrap/*'");
+    lines.push('              # CloudFormation operations for changeset creation');
+    lines.push('              - Effect: Allow');
+    lines.push('                Action:');
+    lines.push('                  - cloudformation:CreateChangeSet');
+    lines.push('                  - cloudformation:DescribeChangeSet');
+    lines.push('                  - cloudformation:DeleteChangeSet');
+    lines.push('                  - cloudformation:ListChangeSets');
+    lines.push('                  - cloudformation:DescribeStacks');
+    lines.push('                  - cloudformation:GetTemplate');
+    lines.push("                Resource: '*'");
+    lines.push('              # CDK bootstrap bucket access');
+    lines.push('              - Effect: Allow');
+    lines.push('                Action:');
+    lines.push('                  - s3:GetObject');
+    lines.push('                  - s3:PutObject');
+    lines.push('                  - s3:ListBucket');
+    lines.push('                  - s3:GetBucketLocation');
+    lines.push('                Resource:');
+    lines.push("                  - !Sub 'arn:aws:s3:::cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}'");
+    lines.push("                  - !Sub 'arn:aws:s3:::cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/*'");
+    lines.push('              # IAM PassRole for CDK operations');
+    lines.push('              - Effect: Allow');
+    lines.push('                Action:');
+    lines.push('                  - iam:PassRole');
+    lines.push("                Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/cdk-hnb659fds-*'");
+    lines.push('                Condition:');
+    lines.push('                  StringEquals:');
+    lines.push("                    'iam:PassedToService': 'cloudformation.amazonaws.com'");
 
     lines.push('');
     return lines;
@@ -358,6 +408,7 @@ export class CdkDiffIamTemplateGenerator {
       '                  - cloudformation:DeleteChangeSet',
       '                  - cloudformation:ListChangeSets',
       '                  - cloudformation:DescribeStacks',
+      '                  - cloudformation:GetTemplate',
       "                Resource: '*'",
       '              # CDK bootstrap bucket access (for changeset creation)',
       '              - Effect: Allow',
