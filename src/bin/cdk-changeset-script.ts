@@ -15,8 +15,6 @@ export class CdkChangesetScript {
         "import { appendFile } from 'fs/promises';",
         "import { CloudFormationClient, DescribeChangeSetCommand } from '@aws-sdk/client-cloudformation';",
         '',
-        "type Change = NonNullable<Awaited<ReturnType<CloudFormationClient['send']>> extends any ? any : never>;",
-        '',
         '/**',
         ' * Small sleep helper.',
         ' */',
