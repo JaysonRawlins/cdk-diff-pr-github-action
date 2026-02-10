@@ -101,4 +101,65 @@ describe('CdkDriftDetectionWorkflow postGitHubSteps (Slack example)', () => {
     // Check presence of the conditional snippet
     expect(wf).toContain("github.event.inputs.stack == 'all'");
   });
+
+  test('very long workflow names are truncated to fit 255-char filename limit', () => {
+    const app = createApp();
+
+    // Create a workflow name long enough that the filename exceeds 255 chars
+    // Use a meaningful suffix so we can verify the end is preserved
+    const longPrefix = 'x'.repeat(260);
+    const longName = `${longPrefix}-important-drift-workflow`;
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      workflowName: longName,
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+    });
+
+    const out = synthSnapshot(app);
+
+    // Find the workflow file (may not contain 'drift' if heavily truncated, so find any .yml)
+    const workflowFiles = Object.keys(out).filter(k => k.startsWith('.github/workflows/') && k.endsWith('.yml'));
+    expect(workflowFiles.length).toBeGreaterThanOrEqual(1);
+
+    for (const f of workflowFiles) {
+      const fileName = f.slice('.github/workflows/'.length);
+      expect(fileName.length).toBeLessThanOrEqual(255);
+    }
+
+    // The end of the name (most meaningful part) should be preserved
+    const driftFile = workflowFiles.find(f => f.includes('important-drift-workflow'));
+    expect(driftFile).toBeDefined();
+  });
+
+  test('workflow names with special characters are sanitized in filenames', () => {
+    const app = createApp();
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      workflowName: 'My/Drift Detection @v2',
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+    });
+
+    const out = synthSnapshot(app);
+
+    // toKebabCase already sanitizes - slashes become dashes, lowercased
+    expect(out['.github/workflows/my-drift-detection-v2.yml']).toBeDefined();
+  });
 });

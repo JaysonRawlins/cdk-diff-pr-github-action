@@ -6,6 +6,8 @@ const githubActionsAwsCredentialsVersion = 'v4';
 const githubActionsCheckoutVersion = 'v4';
 const githubActionsSetupNodeVersion = 'v4';
 
+const MAX_WORKFLOW_FILENAME_LENGTH = 255;
+
 export interface CdkDiffStack {
   readonly stackName: string;
   readonly changesetRoleToAssumeArn: string;
@@ -45,9 +47,11 @@ export class CdkDiffStackWorkflow {
 
     // Create a separate workflow for each stack
     for (const stack of props.stacks) {
-      const workflowName = `diff-${stack.stackName}`;
+      const sanitizedStackName = sanitizeForFileName(stack.stackName);
+      const workflowName = buildWorkflowName('diff-', sanitizedStackName);
+      const fileName = `${workflowName}.yml`;
       const gh = (props as any).project.github ?? new GitHub((props as any).project);
-      const diffDeployWorkflow = new GithubWorkflow(gh, workflowName, { fileName: `${workflowName}.yml` });
+      const diffDeployWorkflow = new GithubWorkflow(gh, workflowName, { fileName });
 
       this.createWorkflowForStack(diffDeployWorkflow, stack, cdkYarnCommand, nodeVersion, scriptOutputPath, props.oidcRoleArn, props.oidcRegion);
     }
@@ -168,4 +172,22 @@ export class CdkDiffStackWorkflow {
       },
     });
   }
+}
+
+function sanitizeForFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+
+function buildWorkflowName(prefix: string, sanitizedName: string, maxLength: number = MAX_WORKFLOW_FILENAME_LENGTH): string {
+  const ext = '.yml';
+  const full = `${prefix}${sanitizedName}${ext}`;
+  if (full.length <= maxLength) {
+    return `${prefix}${sanitizedName}`;
+  }
+  const available = maxLength - prefix.length - ext.length;
+  if (available <= 0) {
+    throw new Error(`Workflow prefix and extension exceed maximum filename length of ${maxLength}`);
+  }
+  // Truncate from the beginning to keep the stack name (end) intact
+  return `${prefix}${sanitizedName.slice(-available).replace(/^-+/, '')}`;
 }

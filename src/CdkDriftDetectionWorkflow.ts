@@ -9,6 +9,8 @@ const githubActionsUploadArtifactVersion = 'v4';
 const githubActionsDownloadArtifactVersion = 'v5';
 const githubActionsGithubScriptVersion = 'v8';
 
+const MAX_WORKFLOW_FILENAME_LENGTH = 255;
+
 export interface Stack {
   readonly stackName: string;
   readonly driftDetectionRoleToAssumeRegion: string;
@@ -65,7 +67,7 @@ export class CdkDriftDetectionWorkflow {
     this.validateOidcConfiguration(props);
 
     const name = props.workflowName ?? 'drift-detection';
-    const fileName = toKebabCase(name) + '.yml';
+    const fileName = buildWorkflowFileName(toKebabCase(name));
     const nodeVersion = props.nodeVersion ?? '24.x';
     const createIssues = props.createIssues ?? true;
     const project = props.project;
@@ -343,6 +345,19 @@ function toKebabCase(s: string): string {
   return s.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
 }
 
+
+function buildWorkflowFileName(baseName: string, ext: string = '.yml', maxLength: number = MAX_WORKFLOW_FILENAME_LENGTH): string {
+  const full = `${baseName}${ext}`;
+  if (full.length <= maxLength) {
+    return full;
+  }
+  const available = maxLength - ext.length;
+  if (available <= 0) {
+    throw new Error(`Workflow extension exceeds maximum filename length of ${maxLength}`);
+  }
+  // Truncate from the beginning to keep the end intact
+  return baseName.slice(-available).replace(/^-+/, '') + ext;
+}
 
 function toGithubJobId(s: string): string {
   // GitHub job_id must start with a letter or underscore and contain only A-Za-z0-9, '-', '_'
