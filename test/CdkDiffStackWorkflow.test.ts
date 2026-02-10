@@ -1,6 +1,6 @@
 import { awscdk } from 'projen';
 import { synthSnapshot } from 'projen/lib/util/synth';
-import { CdkDiffStackWorkflow } from '../src';
+import { CdkDiffStackWorkflow, sanitizeForCloudFormation, sanitizeForFileName } from '../src';
 
 function createApp(): awscdk.AwsCdkTypeScriptApp {
   return new awscdk.AwsCdkTypeScriptApp({
@@ -114,11 +114,15 @@ describe('CdkDiffStackWorkflow', () => {
   test('stack names with slashes are sanitized to dashes in filenames', () => {
     const app = createApp();
 
+    const stackName = 'MyApp/MyService/MyStack';
+    const cfName = sanitizeForCloudFormation(stackName);
+    const fileName = sanitizeForFileName(stackName);
+
     new CdkDiffStackWorkflow({
       project: app,
       stacks: [
         {
-          stackName: 'MyApp/MyService/MyStack',
+          stackName,
           changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
           changesetRoleToAssumeRegion: 'us-east-1',
         },
@@ -129,26 +133,73 @@ describe('CdkDiffStackWorkflow', () => {
 
     const out = synthSnapshot(app);
 
-    // Slashes replaced with dashes, all lowercase
-    expect(out['.github/workflows/diff-myapp-myservice-mystack.yml']).toBeDefined();
+    // Slashes replaced with dashes, all lowercase for filename
+    expect(out[`.github/workflows/diff-${fileName}.yml`]).toBeDefined();
 
     // No subdirectories created under workflows
     const workflowFiles = Object.keys(out).filter(k => k.startsWith('.github/workflows/') && k.endsWith('.yml'));
     for (const f of workflowFiles) {
-      // After .github/workflows/ there should be no more path separators
       const afterWorkflows = f.slice('.github/workflows/'.length);
       expect(afterWorkflows).not.toContain('/');
     }
 
-    // Original stack name is preserved in step names and env vars
-    const wf = out['.github/workflows/diff-myapp-myservice-mystack.yml'].toString();
-    expect(wf).toContain('Create Changeset for MyApp/MyService/MyStack');
-    expect(wf).toContain('STACK_NAME: MyApp/MyService/MyStack');
+    const wf = out[`.github/workflows/diff-${fileName}.yml`].toString();
 
-    // Changeset name is sanitized (no slashes) to satisfy CloudFormation constraint [a-zA-Z][-a-zA-Z0-9]*
-    expect(wf).toContain('--change-set-name MyApp-MyService-MyStack');
-    expect(wf).not.toContain('--change-set-name MyApp/MyService/MyStack');
-    expect(wf).toContain('CHANGE_SET_NAME: MyApp-MyService-MyStack');
+    // Original stack name is preserved in step display names
+    expect(wf).toContain(`Create Changeset for ${stackName}`);
+
+    // All CloudFormation API parameters use sanitizeForCloudFormation output
+    expect(wf).toContain(`--change-set-name ${cfName}`);
+    expect(wf).toContain(`--stack-name ${cfName}`);
+    expect(wf).toContain(`STACK_NAME: ${cfName}`);
+    expect(wf).toContain(`CHANGE_SET_NAME: ${cfName}`);
+    // Raw slashed name is NOT passed to CloudFormation
+    expect(wf).not.toContain(`--change-set-name ${stackName}`);
+    expect(wf).not.toContain(`--stack-name ${stackName}`);
+  });
+
+  test('realistic CDK pipeline path: deploy uses original path, CF APIs use sanitized name', () => {
+    const app = createApp();
+
+    // Realistic CDK pipeline construct path
+    const cdkPath = 'data-platform-pipeline/TestCompanyStageDev/DataBucketsStack';
+    const sanitized = sanitizeForCloudFormation(cdkPath);
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: cdkPath,
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+    });
+
+    const out = synthSnapshot(app);
+    const fileName = sanitizeForFileName(cdkPath);
+    // Workflow filename is lowercased (sanitizeForFileName), but CF names preserve case (sanitizeForCloudFormation)
+    const wf = out[`.github/workflows/diff-${fileName}.yml`].toString();
+
+    // CDK deploy uses the original construct path (CDK resolves it)
+    expect(wf).toContain(`deploy ${cdkPath}`);
+
+    // Step display names use the original path for readability
+    expect(wf).toContain(`Create Changeset for ${cdkPath}`);
+    expect(wf).toContain(`Describe change set for ${cdkPath}`);
+    expect(wf).toContain(`Delete changeset for ${cdkPath}`);
+
+    // CloudFormation API parameters use the sanitized name (no slashes)
+    expect(wf).toContain(`--change-set-name ${sanitized}`);
+    expect(wf).toContain(`--stack-name ${sanitized}`);
+    expect(wf).toContain(`STACK_NAME: ${sanitized}`);
+    expect(wf).toContain(`CHANGE_SET_NAME: ${sanitized}`);
+
+    // No raw slashed names in CF API parameters
+    expect(wf).not.toContain(`--change-set-name ${cdkPath}`);
+    expect(wf).not.toContain(`--stack-name ${cdkPath}`);
   });
 
   test('very long stack names are truncated from the beginning to fit 255-char filename limit', () => {
