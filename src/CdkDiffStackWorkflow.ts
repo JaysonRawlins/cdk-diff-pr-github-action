@@ -84,6 +84,9 @@ export class CdkDiffStackWorkflow {
     defaultOidcRoleArn?: string,
     defaultOidcRegion?: string,
   ) {
+    // CloudFormation changeset names must match [a-zA-Z][-a-zA-Z0-9]*
+    const changeSetName = sanitizeChangeSetName(stack.stackName);
+
     workflow.on({
       pullRequest: {
         types: ['opened', 'synchronize', 'reopened'],
@@ -130,7 +133,7 @@ export class CdkDiffStackWorkflow {
           },
           {
             name: `Create Changeset for ${stack.stackName}`,
-            run: `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${stack.stackName} --require-approval never`,
+            run: `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${changeSetName} --require-approval never`,
           },
           {
             id: 'creds',
@@ -159,14 +162,14 @@ export class CdkDiffStackWorkflow {
             run: `npx ts-node ${scriptOutputPath}`,
             env: {
               STACK_NAME: stack.stackName,
-              CHANGE_SET_NAME: stack.stackName,
+              CHANGE_SET_NAME: changeSetName,
               GITHUB_COMMENT_URL: '${{ github.event.pull_request.comments_url }}',
               GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
             },
           },
           {
             name: `Delete changeset for ${stack.stackName}`,
-            run: `aws cloudformation delete-change-set --change-set-name ${stack.stackName} --stack-name ${stack.stackName} --region ${stack.changesetRoleToAssumeRegion}`,
+            run: `aws cloudformation delete-change-set --change-set-name ${changeSetName} --stack-name ${stack.stackName} --region ${stack.changesetRoleToAssumeRegion}`,
           },
         ],
       },
@@ -176,6 +179,26 @@ export class CdkDiffStackWorkflow {
 
 function sanitizeForFileName(name: string): string {
   return name.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+}
+
+const MAX_CHANGESET_NAME_LENGTH = 128;
+
+function sanitizeChangeSetName(name: string): string {
+  // CloudFormation changeset names: [a-zA-Z][-a-zA-Z0-9]*, max 128 chars
+  let sanitized = name.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  // Ensure it starts with a letter
+  if (!sanitized || !/^[a-zA-Z]/.test(sanitized)) {
+    sanitized = `cs-${sanitized}`;
+  }
+  // Truncate from the beginning to keep the stack name (end) intact
+  if (sanitized.length > MAX_CHANGESET_NAME_LENGTH) {
+    sanitized = sanitized.slice(-MAX_CHANGESET_NAME_LENGTH).replace(/^-+/, '');
+    // Re-check starts with a letter after truncation
+    if (!/^[a-zA-Z]/.test(sanitized)) {
+      sanitized = `cs-${sanitized.slice(0, MAX_CHANGESET_NAME_LENGTH - 3)}`;
+    }
+  }
+  return sanitized;
 }
 
 function buildWorkflowName(prefix: string, sanitizedName: string, maxLength: number = MAX_WORKFLOW_FILENAME_LENGTH): string {

@@ -60,6 +60,10 @@ describe('CdkDiffStackWorkflow', () => {
     // Verify GITHUB_TOKEN and PR comment URL are wired
     expect(wfA).toContain('GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}');
     expect(wfA).toContain('GITHUB_COMMENT_URL: ${{ github.event.pull_request.comments_url }}');
+
+    // Changeset name is sanitized for CloudFormation compatibility
+    expect(wfA).toContain('--change-set-name MyStackA');
+    expect(wfA).toContain('CHANGE_SET_NAME: MyStackA');
   });
 
   test('per-stack oidc overrides are respected', () => {
@@ -140,6 +144,11 @@ describe('CdkDiffStackWorkflow', () => {
     const wf = out['.github/workflows/diff-myapp-myservice-mystack.yml'].toString();
     expect(wf).toContain('Create Changeset for MyApp/MyService/MyStack');
     expect(wf).toContain('STACK_NAME: MyApp/MyService/MyStack');
+
+    // Changeset name is sanitized (no slashes) to satisfy CloudFormation constraint [a-zA-Z][-a-zA-Z0-9]*
+    expect(wf).toContain('--change-set-name MyApp-MyService-MyStack');
+    expect(wf).not.toContain('--change-set-name MyApp/MyService/MyStack');
+    expect(wf).toContain('CHANGE_SET_NAME: MyApp-MyService-MyStack');
   });
 
   test('very long stack names are truncated from the beginning to fit 255-char filename limit', () => {
@@ -202,5 +211,47 @@ describe('CdkDiffStackWorkflow', () => {
 
     // Special characters replaced with dashes, lowercased
     expect(out['.github/workflows/diff-my-stack-v2-prod.yml']).toBeDefined();
+  });
+
+  test('changeset names exceeding 128 chars are truncated from the beginning', () => {
+    const app = createApp();
+
+    // Build a stack name that produces a changeset name > 128 chars after sanitization
+    // Use a meaningful suffix so we can verify the end is preserved
+    const longPrefix = 'a'.repeat(120);
+    const longStackName = `${longPrefix}/ImportantStack`;
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: longStackName,
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+    });
+
+    const out = synthSnapshot(app);
+
+    const workflowFiles = Object.keys(out).filter(k => k.startsWith('.github/workflows/diff-') && k.endsWith('.yml'));
+    expect(workflowFiles).toHaveLength(1);
+    const wf = out[workflowFiles[0]].toString();
+
+    // Extract the changeset name from --change-set-name <name>
+    const match = wf.match(/--change-set-name\s+(\S+)/);
+    expect(match).toBeTruthy();
+    const changeSetName = match![1];
+
+    // Must not exceed 128 chars
+    expect(changeSetName.length).toBeLessThanOrEqual(128);
+    // Must start with a letter
+    expect(changeSetName).toMatch(/^[a-zA-Z]/);
+    // Must match CloudFormation pattern
+    expect(changeSetName).toMatch(/^[a-zA-Z][-a-zA-Z0-9]*$/);
+    // End of the name (stack identifier) should be preserved
+    expect(changeSetName).toContain('ImportantStack');
   });
 });
