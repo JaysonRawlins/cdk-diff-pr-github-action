@@ -65,12 +65,17 @@ describe('CdkDiffStackWorkflow', () => {
     expect(wfA).toContain('--change-set-name MyStackA');
     expect(wfA).toContain('CHANGE_SET_NAME: MyStackA');
 
-    // STACK_NAME is captured at runtime from CDK output (not a static value)
+    // STACK_NAME is resolved at runtime from cdk.out manifest (not a static value)
     expect(wfA).toContain('id: create-changeset');
     expect(wfA).toContain('cf-stack-name=');
     expect(wfA).toContain('STACK_NAME: ${{ steps.create-changeset.outputs.cf-stack-name }}');
+    // Manifest lookup uses jq to find the real CF stack name by displayName
+    expect(wfA).toContain('cdk.out/*/manifest.json');
+    expect(wfA).toContain('aws:cloudformation:stack');
+    expect(wfA).toContain('.displayName');
+    expect(wfA).toContain('.properties.stackName');
 
-    // Delete step uses runtime-captured stack name
+    // Delete step uses runtime-resolved stack name
     expect(wfA).toContain('--stack-name "${{ steps.create-changeset.outputs.cf-stack-name }}"');
   });
 
@@ -162,10 +167,12 @@ describe('CdkDiffStackWorkflow', () => {
     // Raw slashed name is NOT passed to CloudFormation changeset
     expect(wf).not.toContain(`--change-set-name ${stackName}`);
 
-    // STACK_NAME is captured at runtime from CDK output (not a static sanitized value)
+    // STACK_NAME is resolved at runtime from cdk.out manifest (not a static sanitized value)
     expect(wf).toContain('id: create-changeset');
     expect(wf).toContain('STACK_NAME: ${{ steps.create-changeset.outputs.cf-stack-name }}');
     expect(wf).toContain('--stack-name "${{ steps.create-changeset.outputs.cf-stack-name }}"');
+    // Manifest lookup searches for the original construct path as displayName
+    expect(wf).toContain(`"${stackName}"`);
   });
 
   test('realistic CDK pipeline path: deploy uses original path, CF APIs use sanitized name', () => {
@@ -207,12 +214,16 @@ describe('CdkDiffStackWorkflow', () => {
     // Raw slashed name is NOT passed to CloudFormation changeset
     expect(wf).not.toContain(`--change-set-name ${cdkPath}`);
 
-    // STACK_NAME is captured at runtime from CDK output, NOT the sanitized CDK path
+    // STACK_NAME is resolved at runtime from cdk.out manifest, NOT the sanitized CDK path
     // (CDK Pipelines: real CF stack name = {StageID}-{StackID}, pipeline prefix dropped)
     expect(wf).toContain('id: create-changeset');
     expect(wf).toContain('cf-stack-name=');
     expect(wf).toContain('STACK_NAME: ${{ steps.create-changeset.outputs.cf-stack-name }}');
     expect(wf).toContain('--stack-name "${{ steps.create-changeset.outputs.cf-stack-name }}"');
+    // Manifest lookup searches for the original construct path as displayName
+    expect(wf).toContain(`"${cdkPath}"`);
+    expect(wf).toContain('aws:cloudformation:stack');
+    expect(wf).toContain('.properties.stackName');
     // The sanitized CDK path should NOT be used as STACK_NAME (it doesn't match real CF name)
     expect(wf).not.toContain(`STACK_NAME: ${sanitized}`);
   });
