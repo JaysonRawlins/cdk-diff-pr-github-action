@@ -64,6 +64,14 @@ describe('CdkDiffStackWorkflow', () => {
     // Changeset name is sanitized for CloudFormation compatibility
     expect(wfA).toContain('--change-set-name MyStackA');
     expect(wfA).toContain('CHANGE_SET_NAME: MyStackA');
+
+    // STACK_NAME is captured at runtime from CDK output (not a static value)
+    expect(wfA).toContain('id: create-changeset');
+    expect(wfA).toContain('cf-stack-name=');
+    expect(wfA).toContain('STACK_NAME: ${{ steps.create-changeset.outputs.cf-stack-name }}');
+
+    // Delete step uses runtime-captured stack name
+    expect(wfA).toContain('--stack-name "${{ steps.create-changeset.outputs.cf-stack-name }}"');
   });
 
   test('per-stack oidc overrides are respected', () => {
@@ -148,14 +156,16 @@ describe('CdkDiffStackWorkflow', () => {
     // Original stack name is preserved in step display names
     expect(wf).toContain(`Create Changeset for ${stackName}`);
 
-    // All CloudFormation API parameters use sanitizeForCloudFormation output
+    // Changeset name uses sanitizeForCloudFormation output
     expect(wf).toContain(`--change-set-name ${cfName}`);
-    expect(wf).toContain(`--stack-name ${cfName}`);
-    expect(wf).toContain(`STACK_NAME: ${cfName}`);
     expect(wf).toContain(`CHANGE_SET_NAME: ${cfName}`);
-    // Raw slashed name is NOT passed to CloudFormation
+    // Raw slashed name is NOT passed to CloudFormation changeset
     expect(wf).not.toContain(`--change-set-name ${stackName}`);
-    expect(wf).not.toContain(`--stack-name ${stackName}`);
+
+    // STACK_NAME is captured at runtime from CDK output (not a static sanitized value)
+    expect(wf).toContain('id: create-changeset');
+    expect(wf).toContain('STACK_NAME: ${{ steps.create-changeset.outputs.cf-stack-name }}');
+    expect(wf).toContain('--stack-name "${{ steps.create-changeset.outputs.cf-stack-name }}"');
   });
 
   test('realistic CDK pipeline path: deploy uses original path, CF APIs use sanitized name', () => {
@@ -191,15 +201,20 @@ describe('CdkDiffStackWorkflow', () => {
     expect(wf).toContain(`Describe change set for ${cdkPath}`);
     expect(wf).toContain(`Delete changeset for ${cdkPath}`);
 
-    // CloudFormation API parameters use the sanitized name (no slashes)
+    // Changeset name uses the sanitized name (no slashes)
     expect(wf).toContain(`--change-set-name ${sanitized}`);
-    expect(wf).toContain(`--stack-name ${sanitized}`);
-    expect(wf).toContain(`STACK_NAME: ${sanitized}`);
     expect(wf).toContain(`CHANGE_SET_NAME: ${sanitized}`);
-
-    // No raw slashed names in CF API parameters
+    // Raw slashed name is NOT passed to CloudFormation changeset
     expect(wf).not.toContain(`--change-set-name ${cdkPath}`);
-    expect(wf).not.toContain(`--stack-name ${cdkPath}`);
+
+    // STACK_NAME is captured at runtime from CDK output, NOT the sanitized CDK path
+    // (CDK Pipelines: real CF stack name = {StageID}-{StackID}, pipeline prefix dropped)
+    expect(wf).toContain('id: create-changeset');
+    expect(wf).toContain('cf-stack-name=');
+    expect(wf).toContain('STACK_NAME: ${{ steps.create-changeset.outputs.cf-stack-name }}');
+    expect(wf).toContain('--stack-name "${{ steps.create-changeset.outputs.cf-stack-name }}"');
+    // The sanitized CDK path should NOT be used as STACK_NAME (it doesn't match real CF name)
+    expect(wf).not.toContain(`STACK_NAME: ${sanitized}`);
   });
 
   test('very long stack names are truncated from the beginning to fit 255-char filename limit', () => {

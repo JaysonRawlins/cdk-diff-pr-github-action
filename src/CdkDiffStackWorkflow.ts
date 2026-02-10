@@ -134,7 +134,17 @@ export class CdkDiffStackWorkflow {
           },
           {
             name: `Create Changeset for ${stack.stackName}`,
-            run: `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${sanitizedStackName} --require-approval never`,
+            id: 'create-changeset',
+            run: [
+              'set -o pipefail',
+              `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${sanitizedStackName} --require-approval never 2>&1 | tee /tmp/cdk-deploy.log`,
+              "CF_STACK_NAME=$(sed -n 's/[[:space:]]*\\(.*\\): creating CloudFormation change set.*/\\1/p' /tmp/cdk-deploy.log | tail -1)",
+              'if [ -z "$CF_STACK_NAME" ]; then',
+              '  echo "Warning: Could not extract CF stack name from CDK output, falling back to sanitized name"',
+              `  CF_STACK_NAME="${sanitizedStackName}"`,
+              'fi',
+              'echo "cf-stack-name=${CF_STACK_NAME}" >> "$GITHUB_OUTPUT"',
+            ].join('\n'),
           },
           {
             id: 'creds',
@@ -162,7 +172,7 @@ export class CdkDiffStackWorkflow {
             name: `Describe change set for ${stack.stackName}`,
             run: `npx ts-node ${scriptOutputPath}`,
             env: {
-              STACK_NAME: sanitizedStackName,
+              STACK_NAME: '${{ steps.create-changeset.outputs.cf-stack-name }}',
               CHANGE_SET_NAME: sanitizedStackName,
               GITHUB_COMMENT_URL: '${{ github.event.pull_request.comments_url }}',
               GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
@@ -170,7 +180,7 @@ export class CdkDiffStackWorkflow {
           },
           {
             name: `Delete changeset for ${stack.stackName}`,
-            run: `aws cloudformation delete-change-set --change-set-name ${sanitizedStackName} --stack-name ${sanitizedStackName} --region ${stack.changesetRoleToAssumeRegion}`,
+            run: `aws cloudformation delete-change-set --change-set-name ${sanitizedStackName} --stack-name "\${{ steps.create-changeset.outputs.cf-stack-name }}" --region ${stack.changesetRoleToAssumeRegion}`,
           },
         ],
       },
