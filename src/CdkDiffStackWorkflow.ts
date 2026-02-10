@@ -120,7 +120,16 @@ export class CdkDiffStackWorkflow {
             },
           },
           {
-            run: 'yarn install --frozen-lockfile',
+            name: 'Install dependencies',
+            run: [
+              'if [ -f yarn.lock ]; then',
+              '  yarn install --frozen-lockfile',
+              'elif [ -f package-lock.json ]; then',
+              '  npm ci',
+              'else',
+              '  echo "No lock file found (yarn.lock or package-lock.json)" && exit 1',
+              'fi',
+            ].join('\n'),
             env: {
               NODE_AUTH_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
             },
