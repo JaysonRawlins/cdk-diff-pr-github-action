@@ -144,7 +144,7 @@ export class CdkDiffStackWorkflow {
               'for manifest in cdk.out/*/manifest.json cdk.out/manifest.json; do',
               '  [ -f "$manifest" ] || continue',
               `  name=$(jq -r --arg dp "${stack.stackName}" \\`,
-              '    \'.artifacts | to_entries[] | select(.value.type == "aws:cloudformation:stack" and .value.displayName == $dp) | .value.properties.stackName\' \\',
+              '    \'.artifacts | to_entries[] | select(.value.type == "aws:cloudformation:stack" and .value.displayName == $dp) | (.value.properties.stackName // .key)\' \\',
               '    "$manifest")',
               '  if [ -n "$name" ] && [ "$name" != "null" ]; then',
               '    CF_STACK_NAME="$name"',
