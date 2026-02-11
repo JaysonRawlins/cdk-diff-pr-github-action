@@ -376,6 +376,7 @@ export class CdkDiffIamTemplateStackSetGenerator {
       '                  - cloudformation:DeleteChangeSet',
       '                  - cloudformation:ListChangeSets',
       '                  - cloudformation:DescribeStacks',
+      '                  - cloudformation:DescribeStackResourceDrifts',
       "                Resource: '*'",
       '              # CDK bootstrap bucket access (for changeset creation)',
       '              - Effect: Allow',

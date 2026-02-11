@@ -61,6 +61,27 @@ describe('CdkDiffStackWorkflow', () => {
     expect(wfA).toContain('GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}');
     expect(wfA).toContain('GITHUB_COMMENT_URL: ${{ github.event.pull_request.comments_url }}');
 
+    // Verify script uses upsert pattern (not old postGithubComment)
+    const script = out['.github/workflows/scripts/describe-cfn-changeset.ts'].toString();
+    expect(script).toContain('upsertGithubComment');
+    expect(script).toContain('findExistingComment');
+    expect(script).not.toContain('postGithubComment');
+    // Comment marker for find-and-replace
+    expect(script).toContain('<!-- cdk-diff:stack:');
+    // Pagination support
+    expect(script).toContain('per_page=100');
+    expect(script).toContain('parseLinkHeader');
+    // PATCH for updates
+    expect(script).toContain("method: 'PATCH'");
+    // Drift banner
+    expect(script).toContain('getDriftBannerHtml');
+    expect(script).toContain('DescribeStacksCommand');
+    expect(script).toContain('DescribeStackResourceDriftsCommand');
+    expect(script).toContain('IN_SYNC');
+    expect(script).toContain('NOT_CHECKED');
+    expect(script).toContain('DRIFTED');
+    expect(script).toContain('driftBanner');
+
     // Changeset name is sanitized for CloudFormation compatibility
     expect(wfA).toContain('--change-set-name MyStackA');
     expect(wfA).toContain('CHANGE_SET_NAME: MyStackA');

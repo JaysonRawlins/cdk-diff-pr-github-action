@@ -151,9 +151,10 @@ describe('CdkDiffIamTemplateStackSet', () => {
     expect(text).toContain('GitHubOIDCProvider:');
     expect(text).toContain('GitHubOIDCRole:');
 
-    // Changeset role should be present
+    // Changeset role should be present with drift permission
     expect(text).toContain('CdkChangesetRole:');
     expect(text).toContain('CdkChangesetRoleArn:');
+    expect(text).toContain('cloudformation:DescribeStackResourceDrifts');
 
     // Drift role should NOT be present
     expect(text).not.toContain('CdkDriftRole:');

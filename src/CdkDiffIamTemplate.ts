@@ -171,6 +171,7 @@ export class CdkDiffIamTemplateGenerator {
       '                  - cloudformation:DeleteChangeSet',
       '                  - cloudformation:ListChangeSets',
       '                  - cloudformation:DescribeStacks',
+      '                  - cloudformation:DescribeStackResourceDrifts',
       '                  - cloudformation:GetTemplate',
       "                Resource: '*'",
       '              # CDK bootstrap bucket access (for changeset creation)',
@@ -313,6 +314,7 @@ export class CdkDiffIamTemplateGenerator {
     lines.push('                  - cloudformation:DeleteChangeSet');
     lines.push('                  - cloudformation:ListChangeSets');
     lines.push('                  - cloudformation:DescribeStacks');
+    lines.push('                  - cloudformation:DescribeStackResourceDrifts');
     lines.push('                  - cloudformation:GetTemplate');
     lines.push("                Resource: '*'");
     lines.push('              # CDK bootstrap bucket access');
@@ -408,6 +410,7 @@ export class CdkDiffIamTemplateGenerator {
       '                  - cloudformation:DeleteChangeSet',
       '                  - cloudformation:ListChangeSets',
       '                  - cloudformation:DescribeStacks',
+      '                  - cloudformation:DescribeStackResourceDrifts',
       '                  - cloudformation:GetTemplate',
       "                Resource: '*'",
       '              # CDK bootstrap bucket access (for changeset creation)',

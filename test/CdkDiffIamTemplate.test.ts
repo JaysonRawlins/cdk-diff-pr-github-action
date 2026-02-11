@@ -69,6 +69,8 @@ describe('CdkDiffIamTemplateGenerator', () => {
       expect(template).toContain('CdkChangesetRole:');
       expect(template).toContain("RoleName: 'test-changeset-role'");
       expect(template).toContain('!GetAtt GitHubOIDCRole.Arn');
+      // Drift detection permission in changeset role
+      expect(template).toContain('cloudformation:DescribeStackResourceDrifts');
 
       // Outputs
       expect(template).toContain('GitHubOIDCProviderArn:');
@@ -205,6 +207,7 @@ describe('CdkDiffIamTemplate', () => {
     expect(text).toContain('CdkChangesetRole:');
     expect(text).toContain('cloudformation:CreateChangeSet');
     expect(text).toContain('cloudformation:DescribeChangeSet');
+    expect(text).toContain('cloudformation:DescribeStackResourceDrifts');
 
     // Outputs
     expect(text).toContain('Outputs:');
