@@ -1,13 +1,29 @@
 # cdk-diff-pr-github-action
 
+A [Projen](https://projen.io/) construct library that surfaces **CloudFormation change set diffs and drift status directly on your pull requests** so reviewers can see exactly what will change before merging.
+
+## Why this exists
+
+`cdk diff` output disappears into CI logs that nobody reads. Meanwhile, a single property change on an RDS instance or EC2 "pet" server can trigger a **resource replacement** — destroying the database or instance and recreating it from scratch. If that replacement slips through code review unnoticed, the result is data loss and downtime.
+
+This construct was built to make those dangerous changes impossible to miss:
+
+- **Replacement column front and center** — Every change set row shows whether CloudFormation will modify the resource in place or **replace** it, with before/after property values so reviewers can understand *why*.
+- **Comment appears on the PR itself** — No digging through workflow logs. The diff table is posted (and updated in place) as a PR comment and in the GitHub Step Summary.
+- **Drift banner** — If the stack has drifted from its template, a warning banner is prepended to the comment so reviewers know the baseline is already out of sync.
+
+If you have ever lost an EC2 instance, an RDS database, or an ElastiCache cluster to an unexpected CloudFormation replacement, this tool is for you.
+
+---
+
 A library that provides GitHub workflows and IAM templates for:
 - Creating CloudFormation Change Sets for your CDK stacks on pull requests and commenting a formatted diff back on the PR.
 - Detecting CloudFormation drift on a schedule or manual trigger and producing a consolidated summary (optionally creating an issue).
 - Deploying IAM roles across AWS Organizations using StackSets.
 
-It also provides ready‑to‑deploy IAM templates with the minimal permissions required for each workflow.
+It also provides ready-to-deploy IAM templates with the minimal permissions required for each workflow.
 
-**Works with or without Projen** — The StackSet generator can be used standalone in any Node.js project.
+**Works with or without Projen** -- The StackSet generator can be used standalone in any Node.js project.
 
 This package exposes five constructs:
 
@@ -24,6 +40,106 @@ This package exposes five constructs:
 2) Synthesize with `npx projen`.
 3) Commit the generated files.
 4) Open a pull request or run the drift detection workflow.
+
+## End-to-end example
+
+A realistic setup for a CDK Pipelines project with multiple stages and accounts. This generates one diff workflow per stack, a shared IAM template, and a scheduled drift detection workflow.
+
+```ts
+// .projenrc.ts
+import { awscdk } from 'projen';
+import {
+  CdkDiffStackWorkflow,
+  CdkDiffIamTemplate,
+  CdkDriftDetectionWorkflow,
+} from '@jjrawlins/cdk-diff-pr-github-action';
+
+const project = new awscdk.AwsCdkTypeScriptApp({
+  name: 'my-data-platform',
+  defaultReleaseBranch: 'main',
+  cdkVersion: '2.170.0',
+  github: true,
+});
+
+// --- Change Set Diff Workflows (one per stack) ---
+// stackName is the CDK construct path used with `cdk deploy <target>`.
+// For CDK Pipelines, this is typically: pipeline/Stage/Stack
+// The construct automatically resolves the real CloudFormation stack name
+// from cdk.out at runtime (e.g., "my-stage-dev-my-stack").
+
+new CdkDiffStackWorkflow({
+  project,
+  oidcRoleArn: 'arn:aws:iam::111111111111:role/GitHubOIDCRole',
+  oidcRegion: 'us-east-1',
+  stacks: [
+    {
+      stackName: 'my-pipeline/dev/DatabaseStack',
+      changesetRoleToAssumeArn: 'arn:aws:iam::111111111111:role/CdkChangesetRole',
+      changesetRoleToAssumeRegion: 'us-east-1',
+    },
+    {
+      stackName: 'my-pipeline/dev/ComputeStack',
+      changesetRoleToAssumeArn: 'arn:aws:iam::111111111111:role/CdkChangesetRole',
+      changesetRoleToAssumeRegion: 'us-east-1',
+    },
+    {
+      // Cross-account: prod stacks can use a different OIDC role and region
+      stackName: 'my-pipeline/prod/DatabaseStack',
+      changesetRoleToAssumeArn: 'arn:aws:iam::222222222222:role/CdkChangesetRole',
+      changesetRoleToAssumeRegion: 'us-east-1',
+      oidcRoleArn: 'arn:aws:iam::222222222222:role/GitHubOIDCRole',
+      oidcRegion: 'us-east-1',
+    },
+  ],
+});
+
+// --- IAM Template (deploy once per account) ---
+new CdkDiffIamTemplate({
+  project,
+  roleName: 'CdkChangesetRole',
+  createOidcRole: true,
+  githubOidc: {
+    owner: 'my-org',
+    repositories: ['my-data-platform'],
+    branches: ['main'],
+  },
+});
+
+// --- Drift Detection (scheduled + manual) ---
+new CdkDriftDetectionWorkflow({
+  project,
+  schedule: '0 6 * * 1', // Every Monday at 6 AM UTC
+  oidcRoleArn: 'arn:aws:iam::111111111111:role/GitHubOIDCRole',
+  oidcRegion: 'us-east-1',
+  stacks: [
+    {
+      stackName: 'dev-DatabaseStack',
+      driftDetectionRoleToAssumeArn: 'arn:aws:iam::111111111111:role/CdkDriftRole',
+      driftDetectionRoleToAssumeRegion: 'us-east-1',
+    },
+  ],
+});
+
+project.synth();
+```
+
+After `npx projen`, this generates:
+- `.github/workflows/diff-my-pipeline-dev-databasestack.yml`
+- `.github/workflows/diff-my-pipeline-dev-computestack.yml`
+- `.github/workflows/diff-my-pipeline-prod-databasestack.yml`
+- `.github/workflows/scripts/describe-cfn-changeset.ts`
+- `.github/workflows/drift-detection.yml`
+- `.github/workflows/scripts/detect-drift.ts`
+- `cdk-diff-workflow-iam-template.yaml`
+
+When a pull request is opened, each diff workflow runs automatically and posts a comment like this:
+
+| Action | ID | Type | Replacement | Details |
+|--------|-----|------|-------------|---------|
+| 🔵 Modify | MyDatabase | AWS::RDS::DBInstance | **True** | 🔵 **DBInstanceClass**: `db.t3.medium` -> `db.t3.large` |
+| 🔵 Modify | MyFunction | AWS::Lambda::Function | False | 🔵 **Runtime**: `nodejs18.x` -> `nodejs20.x` |
+
+The **Replacement: True** on the RDS instance is exactly the kind of change this tool is designed to catch before it reaches production.
 
 ## Usage: CdkDiffStackWorkflow
 
@@ -93,24 +209,41 @@ If neither top‑level OIDC defaults nor all per‑stack values are supplied, th
   - Polls `DescribeChangeSet` until terminal
   - Filters out ignorable logical IDs or resource types using environment variables `IGNORE_LOGICAL_IDS` and `IGNORE_RESOURCE_TYPES`
   - Renders an HTML table with actions, logical IDs, types, replacements, and changed properties
-  - Prints the HTML, appends to the GitHub Step Summary, and (if `GITHUB_TOKEN` and `GITHUB_COMMENT_URL` are present) posts a PR comment
+  - **Checks cached drift status** via `DescribeStacks` — if the stack has drifted, a warning banner with drifted resource details is prepended to the output (non-fatal; degrades gracefully if IAM permissions are missing)
+  - Prints the HTML and appends to the GitHub Step Summary
+  - **Upserts the PR comment** — uses an HTML marker (`<!-- cdk-diff:stack:STACK_NAME -->`) to find and update an existing comment instead of creating duplicates on every push
 
 ### Change Set Output Format
 
 The change set script uses the CloudFormation `IncludePropertyValues` API feature to show **actual before/after values** for changed properties, not just property names.
 
-**Example output:**
+**Example PR comment:**
+
+> **Warning: Stack has drifted (2 resources out of sync)**
+>
+> Last drift check: 2025-01-15T10:30:00.000Z
+>
+> <details><summary>View drifted resources</summary>
+>
+> | Resource | Type | Drift Status |
+> |----------|------|-------------|
+> | MySecurityGroup | AWS::EC2::SecurityGroup | MODIFIED |
+> | OldBucket | AWS::S3::Bucket | DELETED |
+> </details>
 
 | Action | ID | Type | Replacement | Details |
 |--------|-----|------|-------------|---------|
-| 🔵 Modify | MyLambdaFunction | AWS::Lambda::Function | False | 🔵 **Runtime**: `nodejs18.x` → `nodejs20.x` |
-| 🔵 Modify | MyBucket | AWS::S3::Bucket | False | 🟢 **Tags** (added) ▶ |
+| 🔵 Modify | MyDatabase | AWS::RDS::DBInstance | **True** | 🔵 **DBInstanceClass**: `db.t3.medium` -> `db.t3.large` |
+| 🔵 Modify | MyLambdaFunction | AWS::Lambda::Function | False | 🔵 **Runtime**: `nodejs18.x` -> `nodejs20.x` |
 | 🟢 Add | NewSecurityGroup | AWS::EC2::SecurityGroup | - | |
 | 🔴 Remove | OldRole | AWS::IAM::Role | - | |
 
 **Features:**
+- **Replacement column** highlights when CloudFormation will **destroy and recreate** a resource — critical for stateful resources like databases, EC2 instances, and file systems
+- **Drift banner** — if the stack has drifted, a warning with drifted resource details appears above the change set table so reviewers know the baseline state
+- **Comment upsert** — each stack's comment is updated in place on subsequent pushes instead of creating duplicates; uses an HTML marker for reliable find-and-replace
 - **Color-coded indicators**: 🟢 Added, 🔵 Modified, 🔴 Removed
-- **Inline values for small changes**: Shows `before → after` directly in the table
+- **Inline values for small changes**: Shows `before -> after` directly in the table
 - **Collapsible details for large values**: IAM policies, tags, and other large JSON values are wrapped in expandable `<details>` elements to keep the table readable
 - **All attribute types supported**: Properties, Tags, Metadata, etc.
 - **HTML-escaped values**: Prevents XSS from property values
