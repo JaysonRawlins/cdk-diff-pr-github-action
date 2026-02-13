@@ -81,6 +81,8 @@ describe('CdkDiffStackWorkflow', () => {
     expect(script).toContain('NOT_CHECKED');
     expect(script).toContain('DRIFTED');
     expect(script).toContain('driftBanner');
+    // Timestamp in changeset heading
+    expect(script).toContain('<h1>Change set <sub>${timestamp}</sub></h1>');
 
     // Changeset name is sanitized for CloudFormation compatibility
     expect(wfA).toContain('--change-set-name MyStackA');
