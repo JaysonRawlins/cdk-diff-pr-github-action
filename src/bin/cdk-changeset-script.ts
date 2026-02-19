@@ -109,7 +109,7 @@ export class CdkChangesetScript {
         ' * Generate the HTML body similar to pretty_format.py',
         ' */',
         'function buildHtml(stackName: string, changes: any[]): string {',
-        "  const now = new Date();",
+        '  const now = new Date();',
         "  const timestamp = now.toISOString().slice(0, 16).replace('T', ' ') + ' UTC';",
         '  let body = `<h1>Change set <sub>${timestamp}</sub></h1><h2>Stack Name: ${stackName}</h2><br>`;',
         '  if ((changes?.length ?? 0) > 0) {',
