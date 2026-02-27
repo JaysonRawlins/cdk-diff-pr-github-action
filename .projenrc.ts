@@ -94,6 +94,14 @@ const project = new awscdk.AwsCdkConstructLibrary({
   npmAccess: NpmAccess.PUBLIC,
   releaseToNpm: true,
   npmTrustedPublishing: true, // Enable npm Trusted Publishing via OIDC - eliminates need for NPM_TOKEN
+  publishToPypi: {
+    distName: 'jjrawlins-cdk-diff-pr-github-action',
+    module: 'jjrawlins_cdk_diff_pr_github_action',
+  },
+  publishToGo: {
+    moduleName: 'github.com/JaysonRawlins/cdk-diff-pr-github-action',
+    packageName: 'cdkdiffprgithubaction',
+  },
 });
 
 // Add Yarn resolutions to ensure patched transitive versions
@@ -170,6 +178,14 @@ buildWorkflow.file!.addOverride('jobs.self-mutation.steps.1.with.ref', '${{ gith
 buildWorkflow.file!.addOverride('jobs.package-js.steps.3.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-js.steps.0.with.node-version', workflowNodeVersion);
 
+// Override package-python job checkout (step index 4, after setup-node + setup-python)
+buildWorkflow.file!.addOverride('jobs.package-python.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+buildWorkflow.file!.addOverride('jobs.package-python.steps.0.with.node-version', workflowNodeVersion);
+
+// Override package-go job checkout (step index 4, after setup-node + setup-go)
+buildWorkflow.file!.addOverride('jobs.package-go.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+buildWorkflow.file!.addOverride('jobs.package-go.steps.0.with.node-version', workflowNodeVersion);
+
 /** * For the release jobs, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
 */
 const releaseWorkflow = project.github!.tryFindWorkflow('release')!;
@@ -188,6 +204,21 @@ releaseWorkflow.file!.addOverride('jobs.release_npm.permissions.contents', 'writ
 releaseWorkflow.file!.addOverride('jobs.release_npm.steps.0.with.node-version', '24');
 // Add --ignore-engines to yarn install since Node 24 is outside the engines range (20.x)
 releaseWorkflow.file!.addOverride('jobs.release_npm.steps.4.run', 'cd .repo && yarn install --check-files --frozen-lockfile --ignore-engines');
+
+// PyPI release permissions
+releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.id-token', 'write');
+releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.packages', 'read');
+releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.contents', 'write');
+
+// Go release permissions
+releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.id-token', 'write');
+releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.packages', 'read');
+releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.contents', 'write');
+
+// Prevent release workflow from triggering on Go module commits
+releaseWorkflow.file!.addOverride('on.push.paths-ignore', [
+  'cdkdiffprgithubaction/**',
+]);
 
 project.synth();
 
