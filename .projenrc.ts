@@ -205,15 +205,17 @@ releaseWorkflow.file!.addOverride('jobs.release_npm.steps.0.with.node-version', 
 // Add --ignore-engines to yarn install since Node 24 is outside the engines range (20.x)
 releaseWorkflow.file!.addOverride('jobs.release_npm.steps.4.run', 'cd .repo && yarn install --check-files --frozen-lockfile --ignore-engines');
 
-// PyPI release permissions
+// PyPI release permissions and node version
 releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.id-token', 'write');
 releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.packages', 'read');
 releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.contents', 'write');
+releaseWorkflow.file!.addOverride('jobs.release_pypi.steps.0.with.node-version', workflowNodeVersion);
 
-// Go release permissions
+// Go release permissions and node version
 releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.id-token', 'write');
 releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.packages', 'read');
 releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.contents', 'write');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.0.with.node-version', workflowNodeVersion);
 
 // Prevent release workflow from triggering on Go module commits
 releaseWorkflow.file!.addOverride('on.push.paths-ignore', [
