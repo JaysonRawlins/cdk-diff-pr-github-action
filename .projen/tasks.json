@@ -179,7 +179,19 @@
           "spawn": "package:python"
         },
         {
+          "spawn": "package:dotnet"
+        },
+        {
           "spawn": "package:go"
+        }
+      ]
+    },
+    "package:dotnet": {
+      "name": "package:dotnet",
+      "description": "Create dotnet language bindings",
+      "steps": [
+        {
+          "exec": "jsii-pacmak -v --target dotnet"
         }
       ]
     },
@@ -299,7 +311,7 @@
       },
       "steps": [
         {
-          "exec": "npx npm-check-updates@18 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@aws-sdk/types,@types/jest,@types/lodash,@types/node,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-pacmak,ts-jest,ts-node,typescript,@aws-sdk/client-cloudformation,@types/crypto-js,@types/js-yaml,crypto-js,js-yaml,lodash,lodash.merge,projen"
+          "exec": "npx npm-check-updates@18 --upgrade --target=minor --peer --no-deprecated --dep=dev,peer,prod,optional --filter=@aws-sdk/types,@types/jest,@types/lodash,@types/node,eslint-import-resolver-typescript,eslint-plugin-import,jest,jsii-diff,jsii-pacmak,ts-jest,ts-node,typescript,@aws-sdk/client-cloudformation,@types/crypto-js,@types/js-yaml,crypto-js,js-yaml,lodash,lodash.merge"
         },
         {
           "exec": "yarn install --check-files"

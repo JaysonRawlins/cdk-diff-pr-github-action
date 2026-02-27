@@ -69,6 +69,7 @@ jobs:
       - release
       - release_npm
       - release_pypi
+      - release_nuget
       - release_golang
     runs-on: ubuntu-latest
     permissions:
@@ -175,6 +176,48 @@ jobs:
           TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
         run: npx -p publib@latest publib-pypi
+  release_nuget:
+    name: Publish to NuGet Gallery
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      packages: read
+    if: needs.release.outputs.tag_exists != 'true' && needs.release.outputs.latest_commit == github.sha
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20.x
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 6.x
+      - name: Download build artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: build-artifact
+          path: dist
+      - name: Restore build artifact permissions
+        run: cd dist && setfacl --restore=permissions-backup.acl
+        continue-on-error: true
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          path: .repo
+      - name: Install Dependencies
+        run: cd .repo && yarn install --check-files --frozen-lockfile
+      - name: Extract build artifact
+        run: tar --strip-components=1 -xzvf dist/js/*.tgz -C .repo
+      - name: Move build artifact out of the way
+        run: mv dist dist.old
+      - name: Create dotnet artifact
+        run: cd .repo && npx projen package:dotnet
+      - name: Collect dotnet artifact
+        run: mv .repo/dist dist
+      - name: Release
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: npx -p publib@latest publib-nuget
   release_golang:
     name: Publish to GitHub Go Module Repository
     needs: release

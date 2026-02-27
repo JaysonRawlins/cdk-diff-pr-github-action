@@ -63,7 +63,6 @@ const project = new awscdk.AwsCdkConstructLibrary({
   deps: [ // Does affect consumers of the library
     'crypto-js',
     'lodash',
-    'projen',
     '@aws-sdk/client-cloudformation',
   ],
   devDeps: [ // Does not affect consumers of the library
@@ -72,6 +71,7 @@ const project = new awscdk.AwsCdkConstructLibrary({
     '@aws-sdk/types',
     '@types/node',
     '@types/lodash',
+    'projen',
   ],
   bundledDeps: [
     '@aws-sdk/client-cloudformation',
@@ -97,6 +97,10 @@ const project = new awscdk.AwsCdkConstructLibrary({
   publishToPypi: {
     distName: 'jjrawlins-cdk-diff-pr-github-action',
     module: 'jjrawlins_cdk_diff_pr_github_action',
+  },
+  publishToNuget: {
+    dotNetNamespace: 'JJRawlins.CdkDiffPrGithubAction',
+    packageId: 'JJRawlins.CdkDiffPrGithubAction',
   },
   publishToGo: {
     moduleName: 'github.com/JaysonRawlins/cdk-diff-pr-github-action',
@@ -126,6 +130,19 @@ new TextFile(project, '.tool-versions', {
     `nodejs ${devNodeVersion}`,
     'yarn 1.22.22',
   ],
+});
+
+// Allow importing projen from devDependencies in source files.
+// projen is a build-time dependency (consumers provide their own projen).
+project.eslint?.addOverride({
+  files: ['src/**/*.ts'],
+  rules: {
+    'import/no-extraneous-dependencies': ['error', {
+      devDependencies: true,
+      optionalDependencies: false,
+      peerDependencies: true,
+    }],
+  },
 });
 
 // Ensure 'constructs' is only a peer dependency (avoid duplicates that cause jsii conflicts)
@@ -182,6 +199,10 @@ buildWorkflow.file!.addOverride('jobs.package-js.steps.0.with.node-version', wor
 buildWorkflow.file!.addOverride('jobs.package-python.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-python.steps.0.with.node-version', workflowNodeVersion);
 
+// Override package-dotnet job checkout (step index 4, after setup-node + setup-dotnet)
+buildWorkflow.file!.addOverride('jobs.package-dotnet.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+buildWorkflow.file!.addOverride('jobs.package-dotnet.steps.0.with.node-version', workflowNodeVersion);
+
 // Override package-go job checkout (step index 4, after setup-node + setup-go)
 buildWorkflow.file!.addOverride('jobs.package-go.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-go.steps.0.with.node-version', workflowNodeVersion);
@@ -210,6 +231,12 @@ releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.id-token', 'wri
 releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.packages', 'read');
 releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.contents', 'write');
 releaseWorkflow.file!.addOverride('jobs.release_pypi.steps.0.with.node-version', workflowNodeVersion);
+
+// NuGet release permissions and node version
+releaseWorkflow.file!.addOverride('jobs.release_nuget.permissions.id-token', 'write');
+releaseWorkflow.file!.addOverride('jobs.release_nuget.permissions.packages', 'read');
+releaseWorkflow.file!.addOverride('jobs.release_nuget.permissions.contents', 'write');
+releaseWorkflow.file!.addOverride('jobs.release_nuget.steps.0.with.node-version', workflowNodeVersion);
 
 // Go release permissions and node version
 releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.id-token', 'write');
