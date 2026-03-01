@@ -31,6 +31,16 @@ export interface CdkDriftDetectionWorkflowProps {
   readonly stacks: Stack[];
   readonly nodeVersion?: string; // e.g., '24.x'
   /**
+   * Working directory for the CDK app, relative to the repository root.
+   * Useful for monorepos where infrastructure lives in a subdirectory (e.g., 'infra').
+   *
+   * When set, all workflow run steps will use `defaults.run.working-directory`
+   * and artifact/script paths will be adjusted accordingly.
+   *
+   * @default - repository root
+   */
+  readonly workingDirectory?: string;
+  /**
    * Optional hook to append additional GitHub Actions steps after drift detection per stack.
    * You can supply a static array of steps, or a factory that receives context and returns steps.
    */
@@ -72,6 +82,10 @@ export class CdkDriftDetectionWorkflow {
     const createIssues = props.createIssues ?? true;
     const project = props.project;
     const scriptOutputPath= props.scriptOutputPath ?? '.github/workflows/scripts/detect-drift.ts';
+
+    // Normalize working directory: strip trailing slashes
+    const wd = props.workingDirectory?.replace(/\/+$/, '');
+    const defaults = wd ? { run: { workingDirectory: wd } } : undefined;
 
     // Only create the drift detection script once to avoid collisions
     if (!CdkDriftDetectionWorkflow.scriptCreated) {
@@ -116,9 +130,14 @@ export class CdkDriftDetectionWorkflow {
       const rawPost = props.postGitHubSteps;
       const postSteps: GitHubStep[] = typeof rawPost === 'function' ? (rawPost as (ctx: { stack: string }) => GitHubStep[])({ stack: sanitizedStackName }) : (rawPost ?? []);
 
+      // Prefix results file path for uses: steps (which ignore defaults.run.working-directory)
+      const artifactResultsPath = wd ? `${wd}/${resultsFile}` : resultsFile;
+      const issueResultsPath = wd ? `${wd}/${resultsFile}` : resultsFile;
+
       jobs[jobId] = {
         name: `Drift Detection - ${sanitizedStackName}`,
         runsOn: ['ubuntu-latest'],
+        ...(defaults && { defaults }),
         permissions: {
           contents: JobPermission.READ,
           idToken: JobPermission.WRITE,
@@ -193,7 +212,7 @@ export class CdkDriftDetectionWorkflow {
             name: 'Upload results',
             if: condExpr,
             uses: `actions/upload-artifact@${githubActionsUploadArtifactVersion}`,
-            with: { 'name': `drift-results-${sanitizedStackName}`, 'path': resultsFile, 'if-no-files-found': 'ignore' },
+            with: { 'name': `drift-results-${sanitizedStackName}`, 'path': artifactResultsPath, 'if-no-files-found': 'ignore' },
           },
           ...(
             createIssues
@@ -203,7 +222,7 @@ export class CdkDriftDetectionWorkflow {
                   if: "always() && steps.drift.outcome == 'failure'",
                   id: 'issue',
                   uses: `actions/github-script@${githubActionsGithubScriptVersion}`,
-                  with: { 'result-encoding': 'string', 'script': issueScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, resultsFile) },
+                  with: { 'result-encoding': 'string', 'script': issueScript(sanitizedStackName, stack.driftDetectionRoleToAssumeRegion, issueResultsPath) },
                 },
               ]
               : []

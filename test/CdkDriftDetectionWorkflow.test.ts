@@ -140,6 +140,88 @@ describe('CdkDriftDetectionWorkflow postGitHubSteps (Slack example)', () => {
     expect(driftFile).toBeDefined();
   });
 
+  test('workingDirectory sets defaults.run.working-directory and adjusts artifact paths', () => {
+    const app = createApp();
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      workingDirectory: 'infra',
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/drift-detection.yml'].toString();
+
+    // Job-level defaults.run.working-directory should be set
+    expect(wf).toContain('working-directory: infra');
+
+    // Artifact upload path should be prefixed with working directory
+    expect(wf).toContain('path: infra/drift-results-teststack.json');
+
+    // Issue script should reference prefixed results file path
+    expect(wf).toContain("const resultsFile = 'infra/drift-results-teststack.json'");
+  });
+
+  test('workingDirectory with trailing slash is normalized', () => {
+    const app = createApp();
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      workingDirectory: 'infra/',
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/drift-detection.yml'].toString();
+
+    // Should normalize to 'infra' (no trailing slash)
+    expect(wf).toContain('working-directory: infra');
+    // No double slashes
+    expect(wf).not.toContain('infra//');
+  });
+
+  test('no workingDirectory does not add working-directory', () => {
+    const app = createApp();
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/drift-detection.yml'].toString();
+
+    // Should NOT contain working-directory
+    expect(wf).not.toContain('working-directory');
+    // Artifact path should not be prefixed
+    expect(wf).toContain('path: drift-results-teststack.json');
+    expect(wf).not.toContain('infra/');
+  });
+
   test('workflow names with special characters are sanitized in filenames', () => {
     const app = createApp();
 
