@@ -197,6 +197,7 @@ project.synth();
 * `nodeVersion` (optional, default `'24.x'`) — Node.js version for the workflow runner.
 * `cdkYarnCommand` (optional, default `'cdk'`) — Yarn script/command to invoke CDK.
 * `scriptOutputPath` (optional, default `'.github/workflows/scripts/describe-cfn-changeset.ts'`) — Where to write the helper script.
+* `workingDirectory` (optional) — Subdirectory where the CDK app lives (e.g., `'infra'`). Sets `defaults.run.working-directory` on all jobs so `install`, `synth`, and `deploy` steps run in that directory. The describe-changeset script path is automatically prefixed with `$GITHUB_WORKSPACE/` and `NODE_PATH` is set to resolve modules from the working directory.
 
 If neither top‑level OIDC defaults nor all per‑stack values are supplied, the construct throws a helpful error.
 
@@ -478,6 +479,7 @@ project.synth();
 * `createIssues` (optional, default `true`) — When true, scheduled runs will create/update a GitHub issue if drift is detected.
 * `nodeVersion` (optional, default `'24.x'`) — Node.js version for the runner.
 * `scriptOutputPath` (optional, default `'.github/workflows/scripts/detect-drift.ts'`) — Where to write the helper script.
+* `workingDirectory` (optional) — Subdirectory where the CDK app lives (e.g., `'infra'`). Sets `defaults.run.working-directory` on all jobs. Artifact upload and issue-script paths are automatically prefixed.
 
 ### Per‑stack fields
 
@@ -782,6 +784,44 @@ Run tests with:
 ```bash
 yarn test
 ```
+
+## Monorepo support
+
+If your CDK app lives in a subdirectory (e.g., `infra/`), use the `workingDirectory` option:
+
+```go
+new CdkDiffStackWorkflow({
+  project,
+  workingDirectory: 'infra',
+  oidcRoleArn: 'arn:aws:iam::111111111111:role/GitHubOIDCRole',
+  oidcRegion: 'us-east-1',
+  stacks: [
+    {
+      stackName: 'MyStack-dev',
+      changesetRoleToAssumeArn: 'arn:aws:iam::222222222222:role/CdkChangesetRole',
+      changesetRoleToAssumeRegion: 'us-east-1',
+    },
+  ],
+});
+
+new CdkDriftDetectionWorkflow({
+  project,
+  workingDirectory: 'infra',
+  oidcRoleArn: 'arn:aws:iam::111111111111:role/GitHubOIDCRole',
+  oidcRegion: 'us-east-1',
+  stacks: [
+    {
+      stackName: 'MyStack-dev',
+      driftDetectionRoleToAssumeArn: 'arn:aws:iam::222222222222:role/CdkDriftRole',
+      driftDetectionRoleToAssumeRegion: 'us-east-1',
+    },
+  ],
+});
+```
+
+This sets `defaults.run.working-directory: infra` on all workflow jobs so that `install`, `synth`, and `deploy` steps run in the correct directory. The describe-changeset and detect-drift scripts are referenced with absolute paths so they resolve correctly from the subdirectory.
+
+**Note:** Your `infra/package.json` must include `@aws-sdk/client-cloudformation` as a dependency for the describe-changeset script to resolve modules at runtime.
 
 ## Notes
 

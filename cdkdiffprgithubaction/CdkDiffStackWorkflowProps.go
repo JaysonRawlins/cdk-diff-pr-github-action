@@ -17,5 +17,15 @@ type CdkDiffStackWorkflowProps struct {
 	OidcRoleArn *string `field:"optional" json:"oidcRoleArn" yaml:"oidcRoleArn"`
 	// Experimental.
 	ScriptOutputPath *string `field:"optional" json:"scriptOutputPath" yaml:"scriptOutputPath"`
+	// Working directory for the CDK app, relative to the repository root.
+	//
+	// Useful for monorepos where infrastructure lives in a subdirectory (e.g., 'infra').
+	//
+	// When set, all workflow run steps will use `defaults.run.working-directory`
+	// and script paths will be adjusted to use absolute references.
+	// Default: - repository root.
+	//
+	// Experimental.
+	WorkingDirectory *string `field:"optional" json:"workingDirectory" yaml:"workingDirectory"`
 }
 

@@ -28,5 +28,15 @@ type CdkDriftDetectionWorkflowProps struct {
 	ScriptOutputPath *string `field:"optional" json:"scriptOutputPath" yaml:"scriptOutputPath"`
 	// Experimental.
 	WorkflowName *string `field:"optional" json:"workflowName" yaml:"workflowName"`
+	// Working directory for the CDK app, relative to the repository root.
+	//
+	// Useful for monorepos where infrastructure lives in a subdirectory (e.g., 'infra').
+	//
+	// When set, all workflow run steps will use `defaults.run.working-directory`
+	// and artifact/script paths will be adjusted accordingly.
+	// Default: - repository root.
+	//
+	// Experimental.
+	WorkingDirectory *string `field:"optional" json:"workingDirectory" yaml:"workingDirectory"`
 }
 
