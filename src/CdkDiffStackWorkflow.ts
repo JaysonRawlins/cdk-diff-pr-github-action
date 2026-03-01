@@ -24,6 +24,16 @@ export interface CdkDiffStackWorkflowProps {
   readonly nodeVersion?: string;
   readonly cdkYarnCommand?: string;
   readonly scriptOutputPath?: string;
+  /**
+   * Working directory for the CDK app, relative to the repository root.
+   * Useful for monorepos where infrastructure lives in a subdirectory (e.g., 'infra').
+   *
+   * When set, all workflow run steps will use `defaults.run.working-directory`
+   * and script paths will be adjusted to use absolute references.
+   *
+   * @default - repository root
+   */
+  readonly workingDirectory?: string;
 }
 export class CdkDiffStackWorkflow {
   private static scriptCreated = false;
@@ -32,6 +42,10 @@ export class CdkDiffStackWorkflow {
     const cdkYarnCommand = props.cdkYarnCommand ?? 'cdk';
     const nodeVersion = props.nodeVersion ?? '24.x';
     const scriptOutputPath = props.scriptOutputPath ?? '.github/workflows/scripts/describe-cfn-changeset.ts';
+
+    // Normalize working directory: strip trailing slashes
+    const wd = props.workingDirectory?.replace(/\/+$/, '');
+    const defaults = wd ? { run: { workingDirectory: wd } } : undefined;
 
     // Validate OIDC configuration
     this.validateOidcConfiguration(props);
@@ -53,7 +67,10 @@ export class CdkDiffStackWorkflow {
       const gh = (props as any).project.github ?? new GitHub((props as any).project);
       const diffDeployWorkflow = new GithubWorkflow(gh, workflowName, { fileName });
 
-      this.createWorkflowForStack(diffDeployWorkflow, stack, cdkYarnCommand, nodeVersion, scriptOutputPath, props.oidcRoleArn, props.oidcRegion);
+      this.createWorkflowForStack(
+        diffDeployWorkflow, stack, cdkYarnCommand, nodeVersion,
+        scriptOutputPath, defaults, props.oidcRoleArn, props.oidcRegion,
+      );
     }
   }
 
@@ -81,12 +98,16 @@ export class CdkDiffStackWorkflow {
     cdkYarnCommand: string,
     nodeVersion: string,
     scriptOutputPath: string,
+    defaults: { run: { workingDirectory: string } } | undefined,
     defaultOidcRoleArn?: string,
     defaultOidcRegion?: string,
   ) {
     // Sanitize stack name for CloudFormation API calls (must match [a-zA-Z][-a-zA-Z0-9]*, max 128 chars)
     // Original stack.stackName is preserved only for the CDK deploy target and step display names
     const sanitizedStackName = sanitizeForCloudFormation(stack.stackName);
+
+    // When working directory is set, the describe-changeset step overrides back to repo root
+    // because the script needs root-level ts-node, tsconfig.json, and node_modules (e.g. @aws-sdk)
 
     workflow.on({
       pullRequest: {
@@ -96,6 +117,7 @@ export class CdkDiffStackWorkflow {
     workflow.addJobs({
       diff: {
         runsOn: ['ubuntu-latest'],
+        ...(defaults && { defaults }),
         permissions: {
           idToken: JobPermission.WRITE,
           contents: JobPermission.READ,
@@ -191,8 +213,13 @@ export class CdkDiffStackWorkflow {
           },
           {
             name: `Describe change set for ${stack.stackName}`,
-            run: `npx ts-node ${scriptOutputPath}`,
+            run: defaults
+              ? `npx ts-node --transpile-only \$GITHUB_WORKSPACE/${scriptOutputPath}`
+              : `npx ts-node ${scriptOutputPath}`,
             env: {
+              ...(defaults && {
+                NODE_PATH: `\${{ github.workspace }}/${defaults.run.workingDirectory}/node_modules`,
+              }),
               STACK_NAME: '${{ steps.create-changeset.outputs.cf-stack-name }}',
               CHANGE_SET_NAME: sanitizedStackName,
               GITHUB_COMMENT_URL: '${{ github.event.pull_request.comments_url }}',

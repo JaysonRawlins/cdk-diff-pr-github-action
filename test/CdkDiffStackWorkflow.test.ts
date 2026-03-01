@@ -313,6 +313,94 @@ describe('CdkDiffStackWorkflow', () => {
     expect(out['.github/workflows/diff-my-stack-v2-prod.yml']).toBeDefined();
   });
 
+  test('workingDirectory sets defaults.run.working-directory and adjusts script path', () => {
+    const app = createApp();
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      workingDirectory: 'infra',
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+
+    // Job-level defaults.run.working-directory should be set
+    expect(wf).toContain('working-directory: infra');
+
+    // Describe changeset step uses $GITHUB_WORKSPACE/ prefix and --transpile-only
+    // so the script is found at repo root while deps resolve from working dir
+    expect(wf).toContain(
+      'npx ts-node --transpile-only $GITHUB_WORKSPACE/.github/workflows/scripts/describe-cfn-changeset.ts',
+    );
+    // NODE_PATH points to working directory node_modules for module resolution
+    expect(wf).toContain('NODE_PATH: ${{ github.workspace }}/infra/node_modules');
+
+    // cdk.out manifest lookup should NOT be prefixed (run steps execute in working dir)
+    expect(wf).toContain('cdk.out/*/manifest.json');
+  });
+
+  test('workingDirectory with trailing slash is normalized', () => {
+    const app = createApp();
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      workingDirectory: 'infra/',
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+
+    // Should normalize to 'infra' (no trailing slash)
+    expect(wf).toContain('working-directory: infra');
+    // No double slashes
+    expect(wf).not.toContain('infra//');
+  });
+
+  test('no workingDirectory does not add working-directory', () => {
+    const app = createApp();
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+
+    // Should NOT contain working-directory
+    expect(wf).not.toContain('working-directory');
+    // Script path should be plain relative path (no $GITHUB_WORKSPACE prefix or --transpile-only)
+    expect(wf).toContain('npx ts-node .github/workflows/scripts/describe-cfn-changeset.ts');
+    expect(wf).not.toContain('--transpile-only');
+    expect(wf).not.toContain('NODE_PATH');
+  });
+
   test('changeset names exceeding 128 chars are truncated from the beginning', () => {
     const app = createApp();
 

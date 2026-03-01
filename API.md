@@ -797,6 +797,7 @@ const cdkDiffStackWorkflowProps: CdkDiffStackWorkflowProps = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.workingDirectory">workingDirectory</a></code> | <code>string</code> | Working directory for the CDK app, relative to the repository root. |
 
 ---
 
@@ -870,6 +871,24 @@ public readonly scriptOutputPath: string;
 
 ---
 
+##### `workingDirectory`<sup>Optional</sup> <a name="workingDirectory" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.workingDirectory"></a>
+
+```typescript
+public readonly workingDirectory: string;
+```
+
+- *Type:* string
+- *Default:* repository root
+
+Working directory for the CDK app, relative to the repository root.
+
+Useful for monorepos where infrastructure lives in a subdirectory (e.g., 'infra').
+
+When set, all workflow run steps will use `defaults.run.working-directory`
+and script paths will be adjusted to use absolute references.
+
+---
+
 ### CdkDriftDetectionWorkflowProps <a name="CdkDriftDetectionWorkflowProps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps"></a>
 
 #### Initializer <a name="Initializer" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.Initializer"></a>
@@ -894,6 +913,7 @@ const cdkDriftDetectionWorkflowProps: CdkDriftDetectionWorkflowProps = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.schedule">schedule</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workflowName">workflowName</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workingDirectory">workingDirectory</a></code> | <code>string</code> | Working directory for the CDK app, relative to the repository root. |
 
 ---
 
@@ -1000,6 +1020,24 @@ public readonly workflowName: string;
 ```
 
 - *Type:* string
+
+---
+
+##### `workingDirectory`<sup>Optional</sup> <a name="workingDirectory" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workingDirectory"></a>
+
+```typescript
+public readonly workingDirectory: string;
+```
+
+- *Type:* string
+- *Default:* repository root
+
+Working directory for the CDK app, relative to the repository root.
+
+Useful for monorepos where infrastructure lives in a subdirectory (e.g., 'infra').
+
+When set, all workflow run steps will use `defaults.run.working-directory`
+and artifact/script paths will be adjusted accordingly.
 
 ---
 
