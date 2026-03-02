@@ -198,6 +198,8 @@ project.synth();
 * `cdkYarnCommand` (optional, default `'cdk'`) — Yarn script/command to invoke CDK.
 * `scriptOutputPath` (optional, default `'.github/workflows/scripts/describe-cfn-changeset.ts'`) — Where to write the helper script.
 * `workingDirectory` (optional) — Subdirectory where the CDK app lives (e.g., `'infra'`). Sets `defaults.run.working-directory` on all jobs so `install`, `synth`, and `deploy` steps run in that directory. The describe-changeset script path is automatically prefixed with `$GITHUB_WORKSPACE/` and `NODE_PATH` is set to resolve modules from the working directory.
+* `preGitHubSteps` (optional) — Additional steps to run after install but before AWS credentials and CDK operations. Accepts a static array or a factory `({ stack, workingDirectory }) => steps[]`.
+* `postGitHubSteps` (optional) — Additional steps to run after all CDK operations complete. Accepts a static array or a factory `({ stack, workingDirectory }) => steps[]`.
 
 If neither top‑level OIDC defaults nor all per‑stack values are supplied, the construct throws a helpful error.
 
@@ -480,6 +482,8 @@ project.synth();
 * `nodeVersion` (optional, default `'24.x'`) — Node.js version for the runner.
 * `scriptOutputPath` (optional, default `'.github/workflows/scripts/detect-drift.ts'`) — Where to write the helper script.
 * `workingDirectory` (optional) — Subdirectory where the CDK app lives (e.g., `'infra'`). Sets `defaults.run.working-directory` on all jobs. Artifact upload and issue-script paths are automatically prefixed.
+* `preGitHubSteps` (optional) — Additional steps to run after install but before AWS credentials and drift detection. Accepts a static array or a factory `({ stack, workingDirectory }) => steps[]`. Pre-steps automatically receive the stack-selection condition so they only run when the stack is selected.
+* `postGitHubSteps` (optional) — Additional steps to run after drift detection and issue creation. Accepts a static array or a factory `({ stack, workingDirectory }) => steps[]`. Steps default to `if: always() && steps.drift.outcome == 'failure'` unless you provide your own `if`.
 
 ### Per‑stack fields
 
@@ -822,6 +826,31 @@ new CdkDriftDetectionWorkflow({
 This sets `defaults.run.working-directory: infra` on all workflow jobs so that `install`, `synth`, and `deploy` steps run in the correct directory. The describe-changeset and detect-drift scripts are referenced with absolute paths so they resolve correctly from the subdirectory.
 
 **Note:** Your `infra/package.json` must include `@aws-sdk/client-cloudformation` as a dependency for the describe-changeset script to resolve modules at runtime.
+
+## Pre/post workflow steps
+
+Both `CdkDiffStackWorkflow` and `CdkDriftDetectionWorkflow` support `preGitHubSteps` and `postGitHubSteps` for running custom steps before and after CDK operations. This is useful for building source code, sending Slack notifications, or running arbitrary commands.
+
+You can provide a static array of steps, or a factory function that receives context:
+
+```go
+new CdkDiffStackWorkflow({
+  project,
+  workingDirectory: 'infra',
+  oidcRoleArn: 'arn:aws:iam::111111111111:role/GitHubOIDCRole',
+  oidcRegion: 'us-east-1',
+  stacks: [/* ... */],
+  preGitHubSteps: ({ stack, workingDirectory }) => [
+    // Build at project root (overrides working-directory default)
+    { name: 'Build app', run: 'npm run build', 'working-directory': '.' },
+  ],
+  postGitHubSteps: ({ stack }) => [
+    { name: 'Notify Slack', uses: 'slackapi/slack-github-action@v2', with: { /* ... */ } },
+  ],
+});
+```
+
+> **Note:** When `workingDirectory` is set, all `run:` steps inherit that directory by default. To run a step at the repository root, add `working-directory: '.'` to that step.
 
 ## Notes
 

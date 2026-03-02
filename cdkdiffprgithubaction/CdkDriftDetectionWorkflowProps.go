@@ -22,6 +22,18 @@ type CdkDriftDetectionWorkflowProps struct {
 	// directly in your step without relying on a pre-generated payload.
 	// Experimental.
 	PostGitHubSteps interface{} `field:"optional" json:"postGitHubSteps" yaml:"postGitHubSteps"`
+	// Additional GitHub Actions steps to run before drift detection (after install, before AWS creds).
+	//
+	// Accepts a static array of steps, or a factory function receiving context:
+	// `(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+	//
+	// When `workingDirectory` is set, all `run:` steps inherit that directory.
+	// To run a step at the repository root, add `working-directory: '.'` to that step.
+	//
+	// Pre-steps automatically receive the stack-selection condition (`if`) so they
+	// only run when the stack is selected via dispatch.
+	// Experimental.
+	PreGitHubSteps interface{} `field:"optional" json:"preGitHubSteps" yaml:"preGitHubSteps"`
 	// Experimental.
 	Schedule *string `field:"optional" json:"schedule" yaml:"schedule"`
 	// Experimental.
