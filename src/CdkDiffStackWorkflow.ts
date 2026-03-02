@@ -8,6 +8,18 @@ const githubActionsSetupNodeVersion = 'v4';
 
 const MAX_WORKFLOW_FILENAME_LENGTH = 255;
 
+type GitHubStep = {
+  name?: string;
+  id?: string;
+  if?: string;
+  uses?: string;
+  run?: string;
+  with?: Record<string, any>;
+  env?: Record<string, string>;
+  continueOnError?: boolean;
+  shell?: string;
+};
+
 export interface CdkDiffStack {
   readonly stackName: string;
   readonly changesetRoleToAssumeArn: string;
@@ -34,6 +46,24 @@ export interface CdkDiffStackWorkflowProps {
    * @default - repository root
    */
   readonly workingDirectory?: string;
+  /**
+   * Additional GitHub Actions steps to run before CDK operations (after install, before AWS creds).
+   * Accepts a static array of steps, or a factory function receiving context:
+   * `(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+   *
+   * When `workingDirectory` is set, all `run:` steps inherit that directory.
+   * To run a step at the repository root, add `working-directory: '.'` to that step.
+   */
+  readonly preGitHubSteps?: any;
+  /**
+   * Additional GitHub Actions steps to run after all CDK operations complete.
+   * Accepts a static array of steps, or a factory function receiving context:
+   * `(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+   *
+   * When `workingDirectory` is set, all `run:` steps inherit that directory.
+   * To run a step at the repository root, add `working-directory: '.'` to that step.
+   */
+  readonly postGitHubSteps?: any;
 }
 export class CdkDiffStackWorkflow {
   private static scriptCreated = false;
@@ -70,6 +100,7 @@ export class CdkDiffStackWorkflow {
       this.createWorkflowForStack(
         diffDeployWorkflow, stack, cdkYarnCommand, nodeVersion,
         scriptOutputPath, defaults, props.oidcRoleArn, props.oidcRegion,
+        props.preGitHubSteps, props.postGitHubSteps,
       );
     }
   }
@@ -101,10 +132,17 @@ export class CdkDiffStackWorkflow {
     defaults: { run: { workingDirectory: string } } | undefined,
     defaultOidcRoleArn?: string,
     defaultOidcRegion?: string,
+    rawPreSteps?: any,
+    rawPostSteps?: any,
   ) {
     // Sanitize stack name for CloudFormation API calls (must match [a-zA-Z][-a-zA-Z0-9]*, max 128 chars)
     // Original stack.stackName is preserved only for the CDK deploy target and step display names
     const sanitizedStackName = sanitizeForCloudFormation(stack.stackName);
+
+    // Resolve pre/post steps (accept static array or factory function)
+    const ctx = { stack: sanitizedStackName, workingDirectory: defaults?.run.workingDirectory };
+    const preSteps: GitHubStep[] = typeof rawPreSteps === 'function' ? rawPreSteps(ctx) : (rawPreSteps ?? []);
+    const postSteps: GitHubStep[] = typeof rawPostSteps === 'function' ? rawPostSteps(ctx) : (rawPostSteps ?? []);
 
     // When working directory is set, the describe-changeset step overrides back to repo root
     // because the script needs root-level ts-node, tsconfig.json, and node_modules (e.g. @aws-sdk)
@@ -156,6 +194,7 @@ export class CdkDiffStackWorkflow {
               NODE_AUTH_TOKEN: '${{ secrets.GITHUB_TOKEN }}',
             },
           },
+          ...preSteps,
           {
             uses: `aws-actions/configure-aws-credentials@${githubActionsAwsCredentialsVersion}`,
             with: {
@@ -230,6 +269,7 @@ export class CdkDiffStackWorkflow {
             name: `Delete changeset for ${stack.stackName}`,
             run: `aws cloudformation delete-change-set --change-set-name ${sanitizedStackName} --stack-name "\${{ steps.create-changeset.outputs.cf-stack-name }}" --region ${stack.changesetRoleToAssumeRegion}`,
           },
+          ...postSteps,
         ],
       },
     });

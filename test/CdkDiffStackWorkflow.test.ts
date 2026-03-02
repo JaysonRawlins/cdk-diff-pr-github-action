@@ -401,6 +401,130 @@ describe('CdkDiffStackWorkflow', () => {
     expect(wf).not.toContain('NODE_PATH');
   });
 
+  test('preGitHubSteps factory receives { stack, workingDirectory } context', () => {
+    const app = createApp();
+    const receivedCtx: any[] = [];
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      workingDirectory: 'infra',
+      preGitHubSteps: (ctx: any) => {
+        receivedCtx.push(ctx);
+        return [{ name: 'Pre step', run: 'echo pre' }];
+      },
+    });
+
+    expect(receivedCtx).toHaveLength(1);
+    expect(receivedCtx[0].stack).toBe('MyStack');
+    expect(receivedCtx[0].workingDirectory).toBe('infra');
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+    expect(wf).toContain('name: Pre step');
+  });
+
+  test('postGitHubSteps factory receives { stack, workingDirectory } context', () => {
+    const app = createApp();
+    const receivedCtx: any[] = [];
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      postGitHubSteps: (ctx: any) => {
+        receivedCtx.push(ctx);
+        return [{ name: 'Post step', run: 'echo post' }];
+      },
+    });
+
+    expect(receivedCtx).toHaveLength(1);
+    expect(receivedCtx[0].stack).toBe('MyStack');
+    expect(receivedCtx[0].workingDirectory).toBeUndefined();
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+    expect(wf).toContain('name: Post step');
+  });
+
+  test('static array preGitHubSteps and postGitHubSteps are inserted correctly', () => {
+    const app = createApp();
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      preGitHubSteps: [{ name: 'Build app', run: 'npm run build' }],
+      postGitHubSteps: [{ name: 'Notify Slack', uses: 'slackapi/slack-github-action@v2' }],
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+
+    // Pre-steps appear before AWS creds
+    const preIdx = wf.indexOf('name: Build app');
+    const credsIdx = wf.indexOf('aws-actions/configure-aws-credentials');
+    expect(preIdx).toBeGreaterThan(-1);
+    expect(credsIdx).toBeGreaterThan(preIdx);
+
+    // Post-steps appear after delete changeset
+    const deleteIdx = wf.indexOf('Delete changeset for MyStack');
+    const postIdx = wf.indexOf('name: Notify Slack');
+    expect(postIdx).toBeGreaterThan(deleteIdx);
+  });
+
+  test('pre/post steps do not get a default if condition', () => {
+    const app = createApp();
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      preGitHubSteps: [{ name: 'My pre step', run: 'echo pre' }],
+      postGitHubSteps: [{ name: 'My post step', run: 'echo post' }],
+    });
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/diff-mystack.yml'].toString();
+
+    // Find the pre step and check it has no if condition injected
+    const preNameIdx = wf.indexOf('name: My pre step');
+    const preSnippet = wf.substring(preNameIdx, preNameIdx + 200);
+    // Next step name after pre step
+    const nextStepIdx = preSnippet.indexOf('aws-actions/configure-aws-credentials');
+    const preSection = nextStepIdx > 0 ? preSnippet.substring(0, nextStepIdx) : preSnippet;
+    expect(preSection).not.toContain('if:');
+  });
+
   test('changeset names exceeding 128 chars are truncated from the beginning', () => {
     const app = createApp();
 

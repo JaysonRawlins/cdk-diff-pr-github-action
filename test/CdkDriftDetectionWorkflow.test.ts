@@ -69,6 +69,74 @@ describe('CdkDriftDetectionWorkflow postGitHubSteps (Slack example)', () => {
     expect(snippet).toContain("if: always() && steps.drift.outcome == 'failure'");
   });
 
+  test('preGitHubSteps factory receives { stack, workingDirectory } and gets condExpr default if', () => {
+    const app = createApp();
+    const receivedCtx: any[] = [];
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      workingDirectory: 'infra',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      preGitHubSteps: (ctx: any) => {
+        receivedCtx.push(ctx);
+        return [{ name: 'Build app', run: 'npm run build' }];
+      },
+    });
+
+    expect(receivedCtx).toHaveLength(1);
+    expect(receivedCtx[0].stack).toBe('teststack');
+    expect(receivedCtx[0].workingDirectory).toBe('infra');
+
+    const out = synthSnapshot(app);
+    const wf = out['.github/workflows/drift-detection.yml'].toString();
+
+    // Pre-step should appear before AWS Credentials
+    const preIdx = wf.indexOf('name: Build app');
+    const credsIdx = wf.indexOf('name: AWS Credentials');
+    expect(preIdx).toBeGreaterThan(-1);
+    expect(credsIdx).toBeGreaterThan(preIdx);
+
+    // Pre-step should have the stack-selection condition applied as default
+    const preSnippet = wf.substring(preIdx, preIdx + 500);
+    expect(preSnippet).toContain('if:');
+    expect(preSnippet).toContain("github.event.inputs.stack == 'all'");
+  });
+
+  test('postGitHubSteps factory receives workingDirectory in context', () => {
+    const app = createApp();
+    const receivedCtx: any[] = [];
+
+    new CdkDriftDetectionWorkflow({
+      project: app,
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+      workingDirectory: 'infra',
+      stacks: [
+        {
+          stackName: 'TestStack',
+          driftDetectionRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-drift-role',
+          driftDetectionRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      postGitHubSteps: (ctx: any) => {
+        receivedCtx.push(ctx);
+        return [{ name: 'Post step', run: 'echo done' }];
+      },
+    });
+
+    expect(receivedCtx).toHaveLength(1);
+    expect(receivedCtx[0].stack).toBe('teststack');
+    expect(receivedCtx[0].workingDirectory).toBe('infra');
+  });
+
   test("includes an 'all' option and runs all stacks when selected", () => {
     const app = createApp();
 
