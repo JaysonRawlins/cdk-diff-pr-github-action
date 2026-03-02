@@ -796,6 +796,8 @@ const cdkDiffStackWorkflowProps: CdkDiffStackWorkflowProps = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.nodeVersion">nodeVersion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.postGitHubSteps">postGitHubSteps</a></code> | <code>any</code> | Additional GitHub Actions steps to run after all CDK operations complete. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.preGitHubSteps">preGitHubSteps</a></code> | <code>any</code> | Additional GitHub Actions steps to run before CDK operations (after install, before AWS creds). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.workingDirectory">workingDirectory</a></code> | <code>string</code> | Working directory for the CDK app, relative to the repository root. |
 
@@ -861,6 +863,42 @@ public readonly oidcRoleArn: string;
 
 ---
 
+##### `postGitHubSteps`<sup>Optional</sup> <a name="postGitHubSteps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.postGitHubSteps"></a>
+
+```typescript
+public readonly postGitHubSteps: any;
+```
+
+- *Type:* any
+
+Additional GitHub Actions steps to run after all CDK operations complete.
+
+Accepts a static array of steps, or a factory function receiving context:
+`(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+
+When `workingDirectory` is set, all `run:` steps inherit that directory.
+To run a step at the repository root, add `working-directory: '.'` to that step.
+
+---
+
+##### `preGitHubSteps`<sup>Optional</sup> <a name="preGitHubSteps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.preGitHubSteps"></a>
+
+```typescript
+public readonly preGitHubSteps: any;
+```
+
+- *Type:* any
+
+Additional GitHub Actions steps to run before CDK operations (after install, before AWS creds).
+
+Accepts a static array of steps, or a factory function receiving context:
+`(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+
+When `workingDirectory` is set, all `run:` steps inherit that directory.
+To run a step at the repository root, add `working-directory: '.'` to that step.
+
+---
+
 ##### `scriptOutputPath`<sup>Optional</sup> <a name="scriptOutputPath" id="@jjrawlins/cdk-diff-pr-github-action.CdkDiffStackWorkflowProps.property.scriptOutputPath"></a>
 
 ```typescript
@@ -910,6 +948,7 @@ const cdkDriftDetectionWorkflowProps: CdkDriftDetectionWorkflowProps = { ... }
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRegion">oidcRegion</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.oidcRoleArn">oidcRoleArn</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.postGitHubSteps">postGitHubSteps</a></code> | <code>any</code> | Optional additional GitHub Action steps to run after drift detection for each stack. |
+| <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.preGitHubSteps">preGitHubSteps</a></code> | <code>any</code> | Additional GitHub Actions steps to run before drift detection (after install, before AWS creds). |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.schedule">schedule</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.scriptOutputPath">scriptOutputPath</a></code> | <code>string</code> | *No description.* |
 | <code><a href="#@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.workflowName">workflowName</a></code> | <code>string</code> | *No description.* |
@@ -990,6 +1029,27 @@ Optional additional GitHub Action steps to run after drift detection for each st
 These steps run after results are uploaded for each stack. You can include
 any notifications you like (e.g., Slack). Provide explicit inputs (e.g., payload/markdown)
 directly in your step without relying on a pre-generated payload.
+
+---
+
+##### `preGitHubSteps`<sup>Optional</sup> <a name="preGitHubSteps" id="@jjrawlins/cdk-diff-pr-github-action.CdkDriftDetectionWorkflowProps.property.preGitHubSteps"></a>
+
+```typescript
+public readonly preGitHubSteps: any;
+```
+
+- *Type:* any
+
+Additional GitHub Actions steps to run before drift detection (after install, before AWS creds).
+
+Accepts a static array of steps, or a factory function receiving context:
+`(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+
+When `workingDirectory` is set, all `run:` steps inherit that directory.
+To run a step at the repository root, add `working-directory: '.'` to that step.
+
+Pre-steps automatically receive the stack-selection condition (`if`) so they
+only run when the stack is selected via dispatch.
 
 ---
 

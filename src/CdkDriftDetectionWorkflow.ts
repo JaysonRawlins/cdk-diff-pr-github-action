@@ -52,9 +52,21 @@ export interface CdkDriftDetectionWorkflowProps {
    */
   // NOTE: jsii does not support function types in public APIs; use 'any' here and accept either:
   // - An array of GitHub steps, or
-  // - A function (ctx: { stack: string }) => GitHubStep[]
+  // - A function (ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]
   // The constructor handles both at runtime.
   readonly postGitHubSteps?: any;
+  /**
+   * Additional GitHub Actions steps to run before drift detection (after install, before AWS creds).
+   * Accepts a static array of steps, or a factory function receiving context:
+   * `(ctx: { stack: string; workingDirectory?: string }) => GitHubStep[]`
+   *
+   * When `workingDirectory` is set, all `run:` steps inherit that directory.
+   * To run a step at the repository root, add `working-directory: '.'` to that step.
+   *
+   * Pre-steps automatically receive the stack-selection condition (`if`) so they
+   * only run when the stack is selected via dispatch.
+   */
+  readonly preGitHubSteps?: any;
 }
 
 type GitHubStep = {
@@ -127,8 +139,11 @@ export class CdkDriftDetectionWorkflow {
       const condExpr = '${{ ' + innerCond + ' }}';
       const notCondExpr = '${{ !(' + innerCond + ') }}';
 
+      const stepCtx = { stack: sanitizedStackName, workingDirectory: wd };
+      const rawPre = props.preGitHubSteps;
+      const preSteps: GitHubStep[] = typeof rawPre === 'function' ? rawPre(stepCtx) : (rawPre ?? []);
       const rawPost = props.postGitHubSteps;
-      const postSteps: GitHubStep[] = typeof rawPost === 'function' ? (rawPost as (ctx: { stack: string }) => GitHubStep[])({ stack: sanitizedStackName }) : (rawPost ?? []);
+      const postSteps: GitHubStep[] = typeof rawPost === 'function' ? rawPost(stepCtx) : (rawPost ?? []);
 
       // Prefix results file path for uses: steps (which ignore defaults.run.working-directory)
       const artifactResultsPath = wd ? `${wd}/${resultsFile}` : resultsFile;
@@ -161,6 +176,11 @@ export class CdkDriftDetectionWorkflow {
             with: { 'node-version': nodeVersion },
           },
           { name: 'Install dependencies', if: condExpr, run: 'yarn install --frozen-lockfile || npm ci', env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' } },
+          ...preSteps.map((step) => {
+            const s: any = { ...(step as any) };
+            s.if = s.if ?? condExpr;
+            return s;
+          }),
           {
             name: 'AWS Credentials',
             if: condExpr,
