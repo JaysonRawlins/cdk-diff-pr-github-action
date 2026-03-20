@@ -13,7 +13,7 @@ import (
 	constructs "github.com/aws/constructs-go/constructs/v10/jsii"
 )
 
-//go:embed jjrawlins-cdk-diff-pr-github-action-1.9.14.tgz
+//go:embed jjrawlins-cdk-diff-pr-github-action-1.9.15.tgz
 var tarball []byte
 
 // Initialize loads the necessary packages in the @jsii/kernel to support the enclosing module.
@@ -24,5 +24,5 @@ func Initialize() {
 	constructs.Initialize()
 
 	// Load this library into the kernel
-	_jsii_.Load("@jjrawlins/cdk-diff-pr-github-action", "1.9.14", tarball)
+	_jsii_.Load("@jjrawlins/cdk-diff-pr-github-action", "1.9.15", tarball)
 }
