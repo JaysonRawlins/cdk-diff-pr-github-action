@@ -246,19 +246,19 @@ releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.packages', 'r
 releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.contents', 'write');
 releaseWorkflow.file!.addOverride('jobs.release_golang.steps.0.with.node-version', workflowNodeVersion);
 
-// Replace Go PAT (GO_GITHUB_TOKEN) with projen GitHub App token
-// Override step 10 (Release) to be token generation — must delete merged env/run from original
-releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10', {
-  name: 'Generate GitHub App Token',
-  id: 'generate_token',
-  uses: 'actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5',
-  with: {
-    'app-id': '${{ secrets.PROJEN_APP_ID }}',
-    'private-key': '${{ secrets.PROJEN_APP_PRIVATE_KEY }}',
-  },
+// Replace GO_GITHUB_TOKEN PAT with GitHub App installation token for Go module publishing
+// Step 10: clear old Release step fields and repurpose as token generation
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.name', 'Generate token');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.id', 'generate_token');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.uses', 'actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.with', {
+  'app-id': '${{ secrets.PROJEN_APP_ID }}',
+  'private-key': '${{ secrets.PROJEN_APP_PRIVATE_KEY }}',
 });
+// Remove old Release step fields from step 10
 releaseWorkflow.file!.addDeletionOverride('jobs.release_golang.steps.10.env');
 releaseWorkflow.file!.addDeletionOverride('jobs.release_golang.steps.10.run');
+// Step 11: actual release using the App token
 releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11', {
   name: 'Release',
   env: {
