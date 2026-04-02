@@ -1,5 +1,5 @@
 import { awscdk, TextFile, DependencyType } from 'projen';
-import { GithubCredentials } from 'projen/lib/github';
+import { GithubCredentials, workflows } from 'projen/lib/github';
 import { NpmAccess } from 'projen/lib/javascript';
 const cdkCliVersion = '2.1029.2';
 const minNodeVersion = '20.0.0';
@@ -266,7 +266,12 @@ releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11', {
     GIT_USER_EMAIL: '41898282+github-actions[bot]@users.noreply.github.com',
     GITHUB_TOKEN: '${{ steps.generate_token.outputs.token }}',
   },
-  run: 'npx -p publib@latest publib-golang',
+  run: [
+    // publib constructs https://<token>@github.com/... which works for PATs but not GitHub App tokens.
+    // App tokens require the x-access-token: username prefix.
+    'git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf "https://${GITHUB_TOKEN}@github.com/"',
+    'npx -p publib@latest publib-golang',
+  ].join('\n'),
 });
 
 // Dependabot: disable version update PRs (projen handles upgrades via upgrade-main workflow)
@@ -293,6 +298,39 @@ new TextFile(project, '.github/dependabot.yml', {
 releaseWorkflow.file!.addOverride('on.push.paths-ignore', [
   'cdkdiffprgithubaction/**',
 ]);
+
+// Dependency review on PRs — blocks merge if new high/critical vulnerabilities are introduced
+// Works with existing Dependabot security updates to create a merge gate
+const securityWorkflow = project.github!.addWorkflow('security');
+securityWorkflow.on({
+  pullRequest: {
+    branches: ['main'],
+  },
+});
+securityWorkflow.addJobs({
+  'dependency-review': {
+    name: 'Dependency Review',
+    runsOn: ['ubuntu-latest'],
+    permissions: {
+      contents: workflows.JobPermission.READ,
+      pullRequests: workflows.JobPermission.WRITE,
+    },
+    steps: [
+      {
+        name: 'Checkout',
+        uses: 'actions/checkout@v5',
+      },
+      {
+        name: 'Dependency Review',
+        uses: 'actions/dependency-review-action@v4',
+        with: {
+          'fail-on-severity': 'high',
+          'comment-summary-in-pr': 'always',
+        },
+      },
+    ],
+  },
+});
 
 project.synth();
 
