@@ -56,4 +56,5 @@ tsconfig.json
 !/API.md
 !/.tool-versions
 !/.github/dependabot.yml
+!/.github/workflows/security.yml
 !/.projenrc.ts
