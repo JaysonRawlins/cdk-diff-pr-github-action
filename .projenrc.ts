@@ -1,6 +1,6 @@
 import { awscdk, TextFile, DependencyType } from 'projen';
 import { GithubCredentials, workflows } from 'projen/lib/github';
-import { NpmAccess } from 'projen/lib/javascript';
+import { NpmAccess, UpgradeDependenciesSchedule } from 'projen/lib/javascript';
 const cdkCliVersion = '2.1029.2';
 const minNodeVersion = '20.0.0';
 const devNodeVersion = '20.19.0';
@@ -56,6 +56,11 @@ const project = new awscdk.AwsCdkConstructLibrary({
     },
   },
   depsUpgrade: true,
+  depsUpgradeOptions: {
+    workflowOptions: {
+      schedule: UpgradeDependenciesSchedule.expressions(['0 9 * * 1']),
+    },
+  },
   peerDeps: [
     `aws-cdk-lib@>=${cdkVersion} <3.0.0`,
     `constructs@>=${minConstructsVersion} <11.0.0`,
