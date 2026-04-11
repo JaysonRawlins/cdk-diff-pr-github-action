@@ -167,15 +167,10 @@ project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.perm
 project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.pull-requests', 'write');
 project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.permissions.contents', 'write');
 
-// Add auto-merge step to upgrade-main workflow (step index 6, after PR creation)
-project.github!.tryFindWorkflow('upgrade-main')!.file!.addOverride('jobs.pr.steps.6', {
-  name: 'Enable auto-merge',
-  if: "steps.create-pr.outputs.pull-request-number != ''",
-  run: 'gh pr merge --auto --squash "${{ steps.create-pr.outputs.pull-request-number }}"',
-  env: {
-    GH_TOKEN: '${{ steps.generate_token.outputs.token }}',
-  },
-});
+// Note: audit-ci and auto-merge removal are applied directly to the generated YAML.
+// The "Audit bundled dependencies" step is added after "Install dependencies" in both
+// upgrade-main.yml and build.yml, and the "Enable auto-merge" step is removed from
+// upgrade-main.yml. These changes are maintained in the workflow files directly.
 
 /**
  * For the build job, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
@@ -185,8 +180,8 @@ project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissi
 project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissions.packages', 'read');
 
 /**
- * Fix checkout to use SHA instead of branch ref (survives branch deletion after automerge).
- * When automerge deletes the head branch before workflow jobs complete, using the branch ref fails.
+ * Fix checkout to use SHA instead of branch ref (survives branch deletion after merge).
+ * When merge deletes the head branch before workflow jobs complete, using the branch ref fails.
  * The commit SHA persists even after branch deletion.
  */
 const buildWorkflow = project.github!.tryFindWorkflow('build')!;

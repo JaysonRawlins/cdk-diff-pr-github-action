@@ -27,6 +27,8 @@ jobs:
           node-version: 20.x
       - name: Install dependencies
         run: yarn install --check-files --frozen-lockfile
+      - name: Audit bundled dependencies
+        run: npx audit-ci --critical --report-type summary
       - name: Upgrade dependencies
         run: npx projen upgrade
       - name: Find mutations
@@ -103,8 +105,3 @@ jobs:
           author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
           signoff: true
-      - name: Enable auto-merge
-        if: steps.create-pr.outputs.pull-request-number != ''
-        run: gh pr merge --auto --squash "${{ steps.create-pr.outputs.pull-request-number }}"
-        env:
-          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
