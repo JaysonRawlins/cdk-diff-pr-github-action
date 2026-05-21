@@ -2202,10 +2202,10 @@ co@^4.6.0:
   resolved "https://registry.yarnpkg.com/co/-/co-4.6.0.tgz#6ea6bdf3d853ae54ccb8e47bfa0bf3f9031fb184"
   integrity sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==
 
-codemaker@^1.127.0:
-  version "1.127.0"
-  resolved "https://registry.yarnpkg.com/codemaker/-/codemaker-1.127.0.tgz#fe3c5089585676033049eaec847f6a52f0a75ce1"
-  integrity sha512-iX64GnNH86f88aRj/McYBSNRKT+bn21Okng0v/aGI/G66uOx7bKAf5bhGiqSaip7s5OcXfvjyJ6iA0VhLL4bSg==
+codemaker@^1.130.0:
+  version "1.131.0"
+  resolved "https://registry.yarnpkg.com/codemaker/-/codemaker-1.131.0.tgz#f5627a4da686b2cc1830840d2ce4b0f135a87c66"
+  integrity sha512-C2anrL4nO7zTY2VH3ZfTzJiiHJjqSVLDlShuzssDohdcpAatEvlxhhmw2QFnOJmqfdna1fQ5Khp6dbZrP+mdRA==
   dependencies:
     camelcase "^6.3.0"
     decamelize "^5.0.1"
@@ -4410,18 +4410,18 @@ jsii-docgen@^10.5.0:
     yargs "^16.2.0"
 
 jsii-pacmak@^1.127.0:
-  version "1.127.0"
-  resolved "https://registry.yarnpkg.com/jsii-pacmak/-/jsii-pacmak-1.127.0.tgz#605060364acd07605099ff39234d6d70d376e006"
-  integrity sha512-AexTwVNVsYMcVk+jmudJ/uArnoTIkUuM/kJuISTlhcrbodSglWGiR15GV0CATMdh1T9qqW3Xc9iIoYAW7r1iyA==
+  version "1.130.0"
+  resolved "https://registry.yarnpkg.com/jsii-pacmak/-/jsii-pacmak-1.130.0.tgz#30f0925ef28cac482f32d82be6dfa053e6e97909"
+  integrity sha512-YGKns0/KCbIJcTFUTW3hriZsUGyh/XGDjMwZUpt2QwvvsmaxcVwcrSkB5yTr1Ey3jULMTK3RmZUxEkeC45bIMQ==
   dependencies:
-    "@jsii/check-node" "1.127.0"
-    "@jsii/spec" "1.127.0"
+    "@jsii/check-node" "1.130.0"
+    "@jsii/spec" "1.130.0"
     clone "^2.1.2"
-    codemaker "^1.127.0"
+    codemaker "^1.130.0"
     commonmark "^0.31.2"
     escape-string-regexp "^4.0.0"
     fs-extra "^10.1.0"
-    jsii-reflect "^1.127.0"
+    jsii-reflect "^1.130.0"
     semver "^7.7.4"
     spdx-license-list "^6.11.0"
     xmlbuilder "^15.1.1"
