@@ -2,21 +2,8 @@
 
 name: security
 on:
-  pull_request:
-    branches:
-      - main
+  pull_request: {}
+  workflow_dispatch: {}
 jobs:
-  dependency-review:
-    name: Dependency Review
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-          comment-summary-in-pr: always
+  security:
+    uses: JaysonRawlins/.github/.github/workflows/security.yml@main

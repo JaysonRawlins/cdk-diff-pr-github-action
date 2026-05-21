@@ -65,7 +65,7 @@
     },
     {
       "name": "jest-junit",
-      "version": "^16",
+      "version": "^17",
       "type": "build"
     },
     {
@@ -93,7 +93,7 @@
     },
     {
       "name": "projen",
-      "version": "^0.98.10",
+      "version": "^0.99.52",
       "type": "build"
     },
     {
