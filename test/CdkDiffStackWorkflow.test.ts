@@ -566,4 +566,34 @@ describe('CdkDiffStackWorkflow', () => {
     // End of the name (stack identifier) should be preserved
     expect(changeSetName).toContain('ImportantStack');
   });
+
+  test('generated workflow auto-detects pnpm for install and the CDK CLI runner', () => {
+    const app = createApp();
+
+    new CdkDiffStackWorkflow({
+      project: app,
+      stacks: [
+        {
+          stackName: 'MyStack',
+          changesetRoleToAssumeArn: 'arn:aws:iam::111122223333:role/cdk-diff-role',
+          changesetRoleToAssumeRegion: 'us-east-1',
+        },
+      ],
+      oidcRoleArn: 'arn:aws:iam::111122223333:role/github-oidc-role',
+      oidcRegion: 'us-east-1',
+    });
+
+    const wf = synthSnapshot(app)['.github/workflows/diff-mystack.yml'].toString();
+
+    // Install step handles all three package managers, pnpm first.
+    expect(wf).toContain('if [ -f pnpm-lock.yaml ]; then');
+    expect(wf).toContain('pnpm install --frozen-lockfile');
+    expect(wf).toContain('yarn install --frozen-lockfile');
+    expect(wf).toContain('npm ci');
+
+    // The CDK CLI is invoked through the detected runner (pnpm exec / yarn / npx), not a hardcoded `yarn`.
+    expect(wf).toContain('CDK_RUN="pnpm exec cdk"');
+    expect(wf).toContain('CDK_RUN="yarn cdk"');
+    expect(wf).toContain('$CDK_RUN deploy MyStack --no-execute');
+  });
 });
