@@ -175,7 +175,21 @@ export class CdkDriftDetectionWorkflow {
             uses: `actions/setup-node@${githubActionsSetupNodeVersion}`,
             with: { 'node-version': nodeVersion },
           },
-          { name: 'Install dependencies', if: condExpr, run: 'yarn install --frozen-lockfile || npm ci', env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' } },
+          {
+            name: 'Install dependencies',
+            if: condExpr,
+            run: [
+              'if [ -f pnpm-lock.yaml ]; then',
+              '  corepack enable',
+              '  pnpm install --frozen-lockfile',
+              'elif [ -f yarn.lock ]; then',
+              '  yarn install --frozen-lockfile',
+              'else',
+              '  npm ci',
+              'fi',
+            ].join('\n'),
+            env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' },
+          },
           ...preSteps.map((step) => {
             const s: any = { ...(step as any) };
             s.if = s.if ?? condExpr;

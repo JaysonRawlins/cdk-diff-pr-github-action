@@ -182,12 +182,15 @@ export class CdkDiffStackWorkflow {
           {
             name: 'Install dependencies',
             run: [
-              'if [ -f yarn.lock ]; then',
+              'if [ -f pnpm-lock.yaml ]; then',
+              '  corepack enable',
+              '  pnpm install --frozen-lockfile',
+              'elif [ -f yarn.lock ]; then',
               '  yarn install --frozen-lockfile',
               'elif [ -f package-lock.json ]; then',
               '  npm ci',
               'else',
-              '  echo "No lock file found (yarn.lock or package-lock.json)" && exit 1',
+              '  echo "No lock file found (pnpm-lock.yaml, yarn.lock, or package-lock.json)" && exit 1',
               'fi',
             ].join('\n'),
             env: {
@@ -207,7 +210,9 @@ export class CdkDiffStackWorkflow {
             id: 'create-changeset',
             run: [
               'set -o pipefail',
-              `yarn ${cdkYarnCommand} deploy ${stack.stackName} --no-execute --change-set-name ${sanitizedStackName} --require-approval never`,
+              '# Detect the package-manager runner for the CDK CLI (pnpm/yarn/npm)',
+              `if [ -f pnpm-lock.yaml ]; then CDK_RUN="pnpm exec ${cdkYarnCommand}"; elif [ -f yarn.lock ]; then CDK_RUN="yarn ${cdkYarnCommand}"; else CDK_RUN="npx ${cdkYarnCommand}"; fi`,
+              `$CDK_RUN deploy ${stack.stackName} --no-execute --change-set-name ${sanitizedStackName} --require-approval never`,
               '',
               '# Look up real CF stack name from cdk.out manifest (authoritative source)',
               'CF_STACK_NAME=""',
