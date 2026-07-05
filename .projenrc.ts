@@ -183,27 +183,30 @@ project.github!.tryFindWorkflow('build')!.file!.addOverride('jobs.build.permissi
  */
 const buildWorkflow = project.github!.tryFindWorkflow('build')!;
 
-// Override main build job checkout (step index 0)
+// NOTE: these step indices account for the Aikido Safe-Chain bootstrap step
+// (workflowBootstrapSteps) that projen prepends into every job. That step shifts
+// the checkout/setup-node positions; targeting the wrong index injects a `with:`
+// onto Aikido's `run` step, which is invalid YAML and makes GitHub reject the whole
+// workflow file. Re-verify these against the generated YAML if bootstrap steps change.
+
+// Main build job: checkout at [0], Aikido at [1], setup-node at [2]
 buildWorkflow.file!.addOverride('jobs.build.steps.0.with.ref', '${{ github.event.pull_request.head.sha }}');
-buildWorkflow.file!.addOverride('jobs.build.steps.1.with.node-version', workflowNodeVersion);
+buildWorkflow.file!.addOverride('jobs.build.steps.2.with.node-version', workflowNodeVersion);
 
-// Override self-mutation job checkout (step index 1, after token generation)
-buildWorkflow.file!.addOverride('jobs.self-mutation.steps.1.with.ref', '${{ github.event.pull_request.head.sha }}');
-
-// Override package-js job checkout (step index 3)
-buildWorkflow.file!.addOverride('jobs.package-js.steps.3.with.ref', '${{ github.event.pull_request.head.sha }}');
+// package-js: setup-node at [0], Aikido at [3], checkout at [4]
+buildWorkflow.file!.addOverride('jobs.package-js.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-js.steps.0.with.node-version', workflowNodeVersion);
 
-// Override package-python job checkout (step index 4, after setup-node + setup-python)
-buildWorkflow.file!.addOverride('jobs.package-python.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+// package-python: setup-node at [0], Aikido at [4], checkout at [5]
+buildWorkflow.file!.addOverride('jobs.package-python.steps.5.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-python.steps.0.with.node-version', workflowNodeVersion);
 
-// Override package-dotnet job checkout (step index 4, after setup-node + setup-dotnet)
-buildWorkflow.file!.addOverride('jobs.package-dotnet.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+// package-dotnet: setup-node at [0], Aikido at [4], checkout at [5]
+buildWorkflow.file!.addOverride('jobs.package-dotnet.steps.5.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-dotnet.steps.0.with.node-version', workflowNodeVersion);
 
-// Override package-go job checkout (step index 4, after setup-node + setup-go)
-buildWorkflow.file!.addOverride('jobs.package-go.steps.4.with.ref', '${{ github.event.pull_request.head.sha }}');
+// package-go: setup-node at [0], Aikido at [4], checkout at [5]
+buildWorkflow.file!.addOverride('jobs.package-go.steps.5.with.ref', '${{ github.event.pull_request.head.sha }}');
 buildWorkflow.file!.addOverride('jobs.package-go.steps.0.with.node-version', workflowNodeVersion);
 
 /** * For the release jobs, we need to be able to read from packages and also need id-token permissions for OIDC to authenticate to the registry.
@@ -212,7 +215,8 @@ const releaseWorkflow = project.github!.tryFindWorkflow('release')!;
 releaseWorkflow.file!.addOverride('jobs.release.permissions.id-token', 'write');
 releaseWorkflow.file!.addOverride('jobs.release.permissions.packages', 'read');
 releaseWorkflow.file!.addOverride('jobs.release.permissions.contents', 'write');
-releaseWorkflow.file!.addOverride('jobs.release.steps.2.with.node-version', workflowNodeVersion);
+// release job: checkout [0], git-identity [1], Aikido [2], setup-node [3]
+releaseWorkflow.file!.addOverride('jobs.release.steps.3.with.node-version', workflowNodeVersion);
 releaseWorkflow.file!.addOverride('jobs.release_github.steps.0.with.node-version', workflowNodeVersion);
 
 releaseWorkflow.file!.addOverride('jobs.release_npm.permissions.id-token', 'write');
@@ -223,7 +227,8 @@ releaseWorkflow.file!.addOverride('jobs.release_npm.permissions.contents', 'writ
 // This only affects the release_npm job, not the project's minNodeVersion
 releaseWorkflow.file!.addOverride('jobs.release_npm.steps.0.with.node-version', '24');
 // Add --ignore-engines to yarn install since Node 24 is outside the engines range (20.x)
-releaseWorkflow.file!.addOverride('jobs.release_npm.steps.4.run', 'cd .repo && yarn install --check-files --frozen-lockfile --ignore-engines');
+// release_npm: setup-node [0], Aikido [3], checkout [4], Install Dependencies [5]
+releaseWorkflow.file!.addOverride('jobs.release_npm.steps.5.run', 'cd .repo && yarn install --check-files --frozen-lockfile --ignore-engines');
 
 // PyPI release permissions and node version
 releaseWorkflow.file!.addOverride('jobs.release_pypi.permissions.id-token', 'write');
