@@ -70,6 +70,9 @@ const project = new awscdk.AwsCdkConstructLibrary({
       name: 'Install Aikido Safe-Chain 1.5.3 (in-flight malware scanner, 7d minimum age)',
       run: [
         'echo "SAFE_CHAIN_MINIMUM_PACKAGE_AGE_HOURS=168" >> $GITHUB_ENV',
+        // AWS publishes @aws-sdk/@smithy daily; the 7-day cooldown (meant for unknown
+        // malicious packages) would snag nearly every release on these trusted scopes.
+        'echo "SAFE_CHAIN_MINIMUM_PACKAGE_AGE_EXCLUSIONS=@aws-sdk/*,@smithy/*" >> $GITHUB_ENV',
         'curl -fsSL https://github.com/AikidoSec/safe-chain/releases/download/1.5.3/install-safe-chain.sh | sh -s -- --ci',
       ].join('\n'),
     },
