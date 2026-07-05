@@ -249,24 +249,27 @@ releaseWorkflow.file!.addOverride('jobs.release_golang.permissions.contents', 'w
 releaseWorkflow.file!.addOverride('jobs.release_golang.steps.0.with.node-version', workflowNodeVersion);
 
 // Replace GO_GITHUB_TOKEN PAT with GitHub App installation token for Go module publishing
-// Step 10: clear old Release step fields and repurpose as token generation
-releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.name', 'Generate token');
-releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.id', 'generate_token');
-releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.uses', 'actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5');
-releaseWorkflow.file!.addOverride('jobs.release_golang.steps.10.with', {
+// Step indices assume the Aikido Safe-Chain bootstrap step at index 4; the default
+// job layout is [... 9: Create go artifact, 10: Collect go artifact, 11: Release].
+// Step 11: clear old Release step fields and repurpose as token generation
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11.name', 'Generate token');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11.id', 'generate_token');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11.uses', 'actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5');
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11.with', {
   'app-id': '${{ secrets.PROJEN_APP_ID }}',
   'private-key': '${{ secrets.PROJEN_APP_PRIVATE_KEY }}',
 });
-// Remove old Release step fields from step 10
-releaseWorkflow.file!.addDeletionOverride('jobs.release_golang.steps.10.env');
-releaseWorkflow.file!.addDeletionOverride('jobs.release_golang.steps.10.run');
-// Step 11: actual release using the App token
-releaseWorkflow.file!.addOverride('jobs.release_golang.steps.11', {
+// Remove old Release step fields from step 11
+releaseWorkflow.file!.addDeletionOverride('jobs.release_golang.steps.11.env');
+releaseWorkflow.file!.addDeletionOverride('jobs.release_golang.steps.11.run');
+// Step 12: actual release using the App token
+releaseWorkflow.file!.addOverride('jobs.release_golang.steps.12', {
   name: 'Release',
   env: {
     GIT_USER_NAME: 'github-actions[bot]',
     GIT_USER_EMAIL: '41898282+github-actions[bot]@users.noreply.github.com',
     GITHUB_TOKEN: '${{ steps.generate_token.outputs.token }}',
+    PUBLIB_DRYRUN: '${{ inputs.dry_run }}',
   },
   run: [
     // publib constructs https://<token>@github.com/... which works for PATs but not GitHub App tokens.

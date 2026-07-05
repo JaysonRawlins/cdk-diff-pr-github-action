@@ -291,6 +291,8 @@ jobs:
         run: mv dist dist.old
       - name: Create go artifact
         run: cd .repo && npx projen package:go
+      - name: Collect go artifact
+        run: mv .repo/dist dist
       - name: Generate token
         id: generate_token
         uses: actions/create-github-app-token@3ff1caaa28b64c9cc276ce0a02e2ff584f3900c5
