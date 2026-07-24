@@ -83,7 +83,7 @@ importers:
         version: 5.9.44
       jsii-diff:
         specifier: ^1.127.0
-        version: 1.138.0
+        version: 1.139.0
       jsii-docgen:
         specifier: ^10.5.0
         version: 10.12.4(jsii-rosetta@5.9.55)
@@ -2243,8 +2243,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jsii-diff@1.138.0:
-    resolution: {integrity: sha512-TDYfjglgspBxDvvMWRqPLgwjI1/AnCtyxHaWUsvATboctLIUOGp5d7/Qb6J5Re7287ZVU4MqgcqQVCOvjIuK1w==}
+  jsii-diff@1.139.0:
+    resolution: {integrity: sha512-ApfAu+R8RvdiIhw+9afwW6U9/1TJTa082ePDqiR3Jl60oMCdbsr0aIKHdCerKnmtJU1CvSh/iTupMs0Eix0LUw==}
     engines: {node: '>= 14.17.0'}
     hasBin: true
 
@@ -5978,12 +5978,12 @@ snapshots:
 
   jsesc@3.1.0: {}
 
-  jsii-diff@1.138.0:
+  jsii-diff@1.139.0:
     dependencies:
-      '@jsii/check-node': 1.138.0
-      '@jsii/spec': 1.138.0
+      '@jsii/check-node': 1.139.0
+      '@jsii/spec': 1.139.0
       fs-extra: 10.1.0
-      jsii-reflect: 1.138.0
+      jsii-reflect: 1.139.0
       log4js: 6.9.1
       yargs: 17.7.3
     transitivePeerDependencies:
