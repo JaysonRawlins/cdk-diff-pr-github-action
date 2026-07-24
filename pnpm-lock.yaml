@@ -86,13 +86,13 @@ importers:
         version: 1.139.0
       jsii-docgen:
         specifier: ^10.5.0
-        version: 10.12.4(jsii-rosetta@5.9.55)
+        version: 10.12.4(jsii-rosetta@5.9.56)
       jsii-pacmak:
         specifier: ^1.127.0
-        version: 1.139.0(jsii-rosetta@5.9.55)
+        version: 1.139.0(jsii-rosetta@5.9.56)
       jsii-rosetta:
         specifier: ^5.8.0
-        version: 5.9.55
+        version: 5.9.56
       projen:
         specifier: 0.99.52
         version: 0.99.52(constructs@10.0.5)
@@ -2271,8 +2271,8 @@ packages:
     engines: {node: '>= 14.17.0'}
     hasBin: true
 
-  jsii-rosetta@5.9.55:
-    resolution: {integrity: sha512-R//VaQvn2QEnJsFuc6Kf6GeuHrnTd7CnqKcPfV7CB2vgp5Gk4Mfh4jJaiicwOqGJ0P+31QNpKNxDafFaEsCk5Q==}
+  jsii-rosetta@5.9.56:
+    resolution: {integrity: sha512-RQpDUHE9CZJly33LlAphYH9yJh3PTcWide+bHfdJSIjeAPT9CK2f1AEQxGG5yK4YIsvD27+DDXefxjoOk+40qA==}
     engines: {node: '>= 20.16.0'}
     hasBin: true
 
@@ -5989,19 +5989,19 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jsii-docgen@10.12.4(jsii-rosetta@5.9.55):
+  jsii-docgen@10.12.4(jsii-rosetta@5.9.56):
     dependencies:
       '@jsii/spec': 1.138.0
       case: 1.6.3
       fast-glob: 3.3.3
       fs-extra: 10.1.0
       jsii-reflect: 1.138.0
-      jsii-rosetta: 5.9.55
+      jsii-rosetta: 5.9.56
       json-stream-stringify: 3.1.7
       semver: 7.8.5
       yargs: 16.2.2
 
-  jsii-pacmak@1.139.0(jsii-rosetta@5.9.55):
+  jsii-pacmak@1.139.0(jsii-rosetta@5.9.56):
     dependencies:
       '@jsii/check-node': 1.139.0
       '@jsii/spec': 1.139.0
@@ -6011,7 +6011,7 @@ snapshots:
       escape-string-regexp: 4.0.0
       fs-extra: 10.1.0
       jsii-reflect: 1.139.0
-      jsii-rosetta: 5.9.55
+      jsii-rosetta: 5.9.56
       semver: 7.8.5
       spdx-license-list: 6.11.0
       xmlbuilder: 15.1.1
@@ -6035,10 +6035,10 @@ snapshots:
       oo-ascii-tree: 1.139.0
       yargs: 17.7.3
 
-  jsii-rosetta@5.9.55:
+  jsii-rosetta@5.9.56:
     dependencies:
-      '@jsii/check-node': 1.138.0
-      '@jsii/spec': 1.138.0
+      '@jsii/check-node': 1.139.0
+      '@jsii/spec': 1.139.0
       '@xmldom/xmldom': 0.9.10
       chalk: 4.1.2
       commonmark: 0.31.2
