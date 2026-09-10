@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@xmldom/xmldom': ^0.9.12
+
 importers:
 
   .:
@@ -921,8 +924,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@xmldom/xmldom@0.9.10':
-    resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
+  '@xmldom/xmldom@0.9.12':
+    resolution: {integrity: sha512-5AXjrcMClTryPe9LgZrygpB1lj7s0S9E0+W+AHaVKAVyHanafK86iPSvG5xHVSp/jC+VH1UXu0TAEmY279xH7A==}
     engines: {node: '>=14.6'}
 
   JSONStream@1.3.5:
@@ -1329,6 +1332,7 @@ packages:
 
   crypto-js@4.2.0:
     resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
+    deprecated: Active development of CryptoJS has been discontinued. This library is no longer maintained.
 
   dargs@7.0.0:
     resolution: {integrity: sha512-2iy1EkLdlBzQGvbweYRFxmFath8+K7+AKB0TlhHWkNuH+TmovaMH/Wp7V7R4u7f4SnX3OgLsU9t1NI9ioDnUpg==}
@@ -1587,6 +1591,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -2271,11 +2276,6 @@ packages:
 
   jsii-rosetta@5.9.57:
     resolution: {integrity: sha512-lkCggx58R7BSQW5bpGfWXOm7vDdpfXNyxnCHDhAFOAVq1ZTH58qUeG8XBt9QiGB8LSV4a2YsAASQ8ZqQRcQrFw==}
-    engines: {node: '>= 20.16.0'}
-    hasBin: true
-
-  jsii@5.9.48:
-    resolution: {integrity: sha512-HJDeTfSySdfbJQb0t6TPgrxmek0jicDYghCzbZDKtJAuJMxfGnqbxzvBZKBnFdQzs/RqoZ37qCOV2cemgFkgsg==}
     engines: {node: '>= 20.16.0'}
     hasBin: true
 
@@ -4346,7 +4346,7 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
 
-  '@xmldom/xmldom@0.9.10': {}
+  '@xmldom/xmldom@0.9.12': {}
 
   JSONStream@1.3.5:
     dependencies:
@@ -6040,7 +6040,7 @@ snapshots:
     dependencies:
       '@jsii/check-node': 1.139.0
       '@jsii/spec': 1.139.0
-      '@xmldom/xmldom': 0.9.10
+      '@xmldom/xmldom': 0.9.12
       chalk: 4.1.2
       commonmark: 0.31.2
       fast-glob: 3.3.3
@@ -6050,23 +6050,6 @@ snapshots:
       stream-json: 1.9.1
       typescript: 5.9.3
       workerpool: 6.5.1
-      yargs: 17.7.3
-    transitivePeerDependencies:
-      - supports-color
-
-  jsii@5.9.48:
-    dependencies:
-      '@jsii/check-node': 1.139.0
-      '@jsii/spec': 1.139.0
-      case: 1.6.3
-      chalk: 4.1.2
-      fast-deep-equal: 3.1.3
-      log4js: 6.9.1
-      semver: 7.8.5
-      semver-intersect: 1.5.0
-      sort-json: 2.0.1
-      spdx-license-list: 6.11.0
-      typescript: 5.9.3
       yargs: 17.7.3
     transitivePeerDependencies:
       - supports-color
