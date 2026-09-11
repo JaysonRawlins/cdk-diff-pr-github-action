@@ -15,6 +15,53 @@ if (!lockPath) { console.error('usage: audit-lockfile-age.mjs <lockfile> [minHou
 
 const text = readFileSync(lockPath, 'utf8');
 const file = basename(lockPath);
+// Structural integrity, checked before anything touches the network.
+//
+// A duplicated mapping key makes the lockfile invalid YAML, and pnpm rejects the
+// whole file rather than the offending entry: `pnpm i --frozen-lockfile` exits
+// with ERR_PNPM_BROKEN_LOCKFILE and takes every build and release job with it.
+// Seen three times across this fleet, always from two Dependabot lockfile
+// rewrites landing the same day. The duplicated blocks come out byte-identical,
+// so nothing is semantically lost and nothing notices until a build runs.
+//
+// Has to be section-aware. pnpm lockfiles legitimately repeat the same
+// `pkg@version` key across `packages:` and `snapshots:` — only a repeat WITHIN a
+// single section is a defect. A scan that ignores sections reports hundreds of
+// false positives and gets switched off.
+function findDuplicateKeys(src) {
+  const seen = new Map();
+  const dups = new Map();
+  let section = null;
+  const lines = src.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\S.*:\s*$/.test(line)) { section = line.trim().replace(/:$/, ''); continue; }
+    if (!/^ {2}\S/.test(line)) continue; // only top-level keys within a section
+    // `foo@1.2.3:` and `foo@1.2.3: {}` both reduce to foo@1.2.3; a colon inside a
+    // quoted key (npm: aliases) is left alone because only a trailing one matches.
+    const key = line.trim().replace(/:(\s.*)?$/, '');
+    const id = `${section}/${key}`;
+    if (seen.has(id)) {
+      if (!dups.has(id)) dups.set(id, [seen.get(id)]);
+      dups.get(id).push(i + 1);
+    } else {
+      seen.set(id, i + 1);
+    }
+  }
+  return dups;
+}
+
+if (file === 'pnpm-lock.yaml') {
+  const dups = findDuplicateKeys(text);
+  if (dups.size) {
+    console.error(`BROKEN LOCKFILE: ${dups.size} duplicated key(s) — pnpm will refuse this file`);
+    for (const [id, lineNos] of dups) console.error(`  ${id} at lines ${lineNos.join(', ')}`);
+    console.error('\nThis is usually two Dependabot lockfile rewrites landing the same day.');
+    console.error('The duplicate blocks are typically identical, so deleting the later copy is lossless.');
+    process.exit(1);
+  }
+}
+
 const entries = new Map(); // name -> Set(version)
 
 function add(name, version) {
