@@ -92,7 +92,7 @@ importers:
         version: 10.12.6(jsii-rosetta@5.9.57)
       jsii-pacmak:
         specifier: ^1.127.0
-        version: 1.139.0(jsii-rosetta@5.9.57)
+        version: 1.140.0(jsii-rosetta@5.9.57)
       jsii-rosetta:
         specifier: ^5.8.0
         version: 5.9.57
@@ -1195,8 +1195,8 @@ packages:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
 
-  codemaker@1.139.0:
-    resolution: {integrity: sha512-v93CwWcepdmHDENEJuPepaOzo2J8SZ5HKNVgH/+6vPrvLOoDDfVXEkBMr6KUu4trHN7QvZjFwxJBpjCYCBG9+g==}
+  codemaker@1.140.0:
+    resolution: {integrity: sha512-/EPlxI+2i9ji7aZac2kLEUyjzfgHWBl8hDZ98T6BnED9mTLRInCNToA0vqgZPcTotiP6g6YNeZo7cBAc90Ok9A==}
     engines: {node: '>= 14.17.0'}
 
   collect-v8-coverage@1.0.3:
@@ -2257,8 +2257,8 @@ packages:
     peerDependencies:
       jsii-rosetta: ^1.85.0 || ~5.0.14 || ~5.1.2 || ~5.2.0 || ~5.3.0 || ~5.4.0 || ~5.5.0 || ~5.6.0 || ~5.7.0 || ~5.8.0 || ~5.9.1 || ~6.0.0
 
-  jsii-pacmak@1.139.0:
-    resolution: {integrity: sha512-hE+rc+RS4Qwe+MzGqG515tXueOhn6r++/L8kpX5wT18HqUoBJdOdqFOv90PYitDgNywovOE0kEd8YyV1S5Mh6Q==}
+  jsii-pacmak@1.140.0:
+    resolution: {integrity: sha512-BHv63POC099uGm08UM7L5UZUanN3rfESzWv54xpwhamiIJ+zlw0+6Sj790LP2skRkezTdTj8Qj6mhU5Kxfko7g==}
     engines: {node: '>= 14.17.0'}
     hasBin: true
     peerDependencies:
@@ -2906,10 +2906,6 @@ packages:
 
   spdx-license-ids@3.0.23:
     resolution: {integrity: sha512-CWLcCCH7VLu13TgOH+r8p1O/Znwhqv/dbb6lqWy67G+pT1kHmeD/+V36AVb/vq8QMIQwVShJ6Ssl5FPh0fuSdw==}
-
-  spdx-license-list@6.11.0:
-    resolution: {integrity: sha512-p5ICd51dSnh7zIMtPgbB9ShBg3HMT77OeI6WVhrFFvxa5KIFYNcqxD4joAE+n1zZ7wlJdEkrOMwC75JUMMmsJA==}
-    engines: {node: '>=8'}
 
   spdx-license-list@6.12.0:
     resolution: {integrity: sha512-+nUYqm3aZMSHbjsthK+i/HHI2okTElCvqwUd4k8QcSk+FTGgjq+fsdFj2wZOaX6XmR2JdWhf/NeflNnvKOjcnQ==}
@@ -4647,7 +4643,7 @@ snapshots:
 
   co@4.6.0: {}
 
-  codemaker@1.139.0:
+  codemaker@1.140.0:
     dependencies:
       camelcase: 6.3.0
       decamelize: 5.0.1
@@ -6010,19 +6006,19 @@ snapshots:
       semver: 7.8.5
       yargs: 16.2.2
 
-  jsii-pacmak@1.139.0(jsii-rosetta@5.9.57):
+  jsii-pacmak@1.140.0(jsii-rosetta@5.9.57):
     dependencies:
-      '@jsii/check-node': 1.139.0
-      '@jsii/spec': 1.139.0
+      '@jsii/check-node': 1.140.0
+      '@jsii/spec': 1.140.0
       clone: 2.1.2
-      codemaker: 1.139.0
+      codemaker: 1.140.0
       commonmark: 0.31.2
       escape-string-regexp: 4.0.0
       fs-extra: 10.1.0
-      jsii-reflect: 1.139.0
+      jsii-reflect: 1.140.0
       jsii-rosetta: 5.9.57
       semver: 7.8.5
-      spdx-license-list: 6.11.0
+      spdx-license-list: 6.12.0
       xmlbuilder: 15.1.1
       yargs: 17.7.3
 
@@ -6698,8 +6694,6 @@ snapshots:
       spdx-license-ids: 3.0.23
 
   spdx-license-ids@3.0.23: {}
-
-  spdx-license-list@6.11.0: {}
 
   spdx-license-list@6.12.0: {}
 
