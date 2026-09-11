@@ -89,13 +89,13 @@ importers:
         version: 1.139.0
       jsii-docgen:
         specifier: ^10.5.0
-        version: 10.12.6(jsii-rosetta@5.9.57)
+        version: 10.12.6(jsii-rosetta@5.9.64)
       jsii-pacmak:
         specifier: ^1.127.0
-        version: 1.139.0(jsii-rosetta@5.9.57)
+        version: 1.139.0(jsii-rosetta@5.9.64)
       jsii-rosetta:
         specifier: ^5.8.0
-        version: 5.9.57
+        version: 5.9.64
       projen:
         specifier: 0.99.52
         version: 0.99.52(constructs@10.0.5)
@@ -2274,8 +2274,13 @@ packages:
     engines: {node: '>= 14.17.0'}
     hasBin: true
 
-  jsii-rosetta@5.9.57:
-    resolution: {integrity: sha512-lkCggx58R7BSQW5bpGfWXOm7vDdpfXNyxnCHDhAFOAVq1ZTH58qUeG8XBt9QiGB8LSV4a2YsAASQ8ZqQRcQrFw==}
+  jsii-rosetta@5.9.64:
+    resolution: {integrity: sha512-24eTwyTX0Ak2u9XSI2C3N+QaA5KsizNE0llVKObKZT0NEAE7wbHjGBuT2y1RjGfIsaSrpWGx5VzW0Fmaut7FiA==}
+    engines: {node: '>= 20.16.0'}
+    hasBin: true
+
+  jsii@5.9.53:
+    resolution: {integrity: sha512-IqNfn1EWYOL/nkgYv3meNgRz/5yCbjNJgp1qFxkAEvIUPMlgKjCINXjAv21n3pXREVT1VAsMldG0MrtKaCywgw==}
     engines: {node: '>= 20.16.0'}
     hasBin: true
 
@@ -5998,19 +6003,19 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jsii-docgen@10.12.6(jsii-rosetta@5.9.57):
+  jsii-docgen@10.12.6(jsii-rosetta@5.9.64):
     dependencies:
       '@jsii/spec': 1.140.0
       case: 1.6.3
       fast-glob: 3.3.3
       fs-extra: 10.1.0
       jsii-reflect: 1.140.0
-      jsii-rosetta: 5.9.57
+      jsii-rosetta: 5.9.64
       json-stream-stringify: 3.1.7
       semver: 7.8.5
       yargs: 16.2.2
 
-  jsii-pacmak@1.139.0(jsii-rosetta@5.9.57):
+  jsii-pacmak@1.139.0(jsii-rosetta@5.9.64):
     dependencies:
       '@jsii/check-node': 1.139.0
       '@jsii/spec': 1.139.0
@@ -6020,7 +6025,7 @@ snapshots:
       escape-string-regexp: 4.0.0
       fs-extra: 10.1.0
       jsii-reflect: 1.139.0
-      jsii-rosetta: 5.9.57
+      jsii-rosetta: 5.9.64
       semver: 7.8.5
       spdx-license-list: 6.11.0
       xmlbuilder: 15.1.1
@@ -6044,10 +6049,10 @@ snapshots:
       oo-ascii-tree: 1.140.0
       yargs: 17.7.3
 
-  jsii-rosetta@5.9.57:
+  jsii-rosetta@5.9.64:
     dependencies:
-      '@jsii/check-node': 1.139.0
-      '@jsii/spec': 1.139.0
+      '@jsii/check-node': 1.140.0
+      '@jsii/spec': 1.140.0
       '@xmldom/xmldom': 0.9.12
       chalk: 4.1.2
       commonmark: 0.31.2
@@ -6058,6 +6063,23 @@ snapshots:
       stream-json: 1.9.1
       typescript: 5.9.3
       workerpool: 6.5.1
+      yargs: 17.7.3
+    transitivePeerDependencies:
+      - supports-color
+
+  jsii@5.9.53:
+    dependencies:
+      '@jsii/check-node': 1.139.0
+      '@jsii/spec': 1.139.0
+      case: 1.6.3
+      chalk: 4.1.2
+      fast-deep-equal: 3.1.3
+      log4js: 6.9.1
+      semver: 7.8.5
+      semver-intersect: 1.5.0
+      sort-json: 2.0.1
+      spdx-license-list: 6.12.0
+      typescript: 5.9.3
       yargs: 17.7.3
     transitivePeerDependencies:
       - supports-color
